@@ -3,14 +3,8 @@ package handlers
 import (
 	"doce-panda/infra/db/gorm"
 	"doce-panda/infra/gorm/product/repository"
-	"doce-panda/usecase/product/create"
-	"doce-panda/usecase/product/delete"
-	"doce-panda/usecase/product/disable"
-	"doce-panda/usecase/product/enable"
-	"doce-panda/usecase/product/find"
-	"doce-panda/usecase/product/find_all"
-	"doce-panda/usecase/product/update"
-	"doce-panda/usecase/product/upload"
+	"doce-panda/usecase/product"
+	"doce-panda/usecase/product/dtos"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,7 +15,7 @@ func FindAllProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		output, err := find_all.NewFindAllProductUseCase(productRepository).Execute()
+		output, err := product.NewFindAllProductUseCase(productRepository).Execute()
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err.Error())
@@ -37,14 +31,14 @@ func FindProduct() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id := ctx.Params("id")
 
-		input := find.InputFindProductDto{ID: id}
+		input := dtos.InputFindProductDto{ID: id}
 
 		db := gorm.NewDb()
 		defer db.Close()
 
 		productRepository := repository.NewProductRepository(db)
 
-		output, err := find.NewFindProductUseCase(productRepository).Execute(input)
+		output, err := product.NewFindProductUseCase(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err.Error())
@@ -59,14 +53,14 @@ func FindProduct() fiber.Handler {
 
 func CreateProduct() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		body := new(create.InputCreateProductDto)
+		body := new(dtos.InputCreateProductDto)
 		err := ctx.BodyParser(body)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err)
 		}
 
-		input := create.InputCreateProductDto{
+		input := dtos.InputCreateProductDto{
 			Name:         body.Name,
 			PriceInCents: body.PriceInCents,
 			Description:  body.Description,
@@ -78,7 +72,7 @@ func CreateProduct() fiber.Handler {
 		defer db.Close()
 
 		productRepository := repository.NewProductRepository(db)
-		output, err := create.NewCreateProductUseCase(productRepository).Execute(input)
+		output, err := product.NewCreateProductUseCase(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -99,7 +93,7 @@ func CreateProduct() fiber.Handler {
 func UpdateProduct() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id := ctx.Params("id")
-		body := new(update.InputUpdateProductDto)
+		body := new(dtos.InputUpdateProductDto)
 		err := ctx.BodyParser(body)
 
 		if err != nil {
@@ -110,19 +104,19 @@ func UpdateProduct() fiber.Handler {
 		defer db.Close()
 
 		productRepository := repository.NewProductRepository(db)
-		findProduct, err := find.NewFindProductUseCase(productRepository).Execute(find.InputFindProductDto{ID: id})
+		findProduct, err := product.NewFindProductUseCase(productRepository).Execute(dtos.InputFindProductDto{ID: id})
 
-		input := update.InputUpdateProductDto{
+		input := dtos.InputUpdateProductDto{
 			ID:           id,
 			Name:         body.Name,
 			PriceInCents: body.PriceInCents,
 			Description:  body.Description,
 			Flavor:       body.Flavor,
 			Quantity:     body.Quantity,
-			Status:       update.StatusEnum(findProduct.Status),
+			Status:       dtos.StatusEnum(findProduct.Status),
 		}
 
-		output, err := update.NewUpdateProductUseCase(productRepository).Execute(input)
+		output, err := product.NewUpdateProductUseCase(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -144,14 +138,14 @@ func DestroyProduct() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id := ctx.Params("id")
 
-		input := destroy.InputDeleteProductDto{ID: id}
+		input := dtos.InputDeleteProductDto{ID: id}
 
 		db := gorm.NewDb()
 		defer db.Close()
 
 		productRepository := repository.NewProductRepository(db)
 
-		err := destroy.NewDeleteProductUseCase(productRepository).Execute(input)
+		err := product.NewDeleteProductUseCase(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err)
@@ -177,7 +171,7 @@ func UploadProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		product, err := upload.NewUploadProductUseCase(productRepository).Execute(upload.InputUploadProductDto{
+		productEntity, err := product.NewUploadProductUseCase(productRepository).Execute(dtos.InputUploadProductDto{
 			ID:   id,
 			File: file,
 		})
@@ -188,7 +182,7 @@ func UploadProduct() fiber.Handler {
 
 		return ctx.JSON(fiber.Map{
 			"success": true,
-			"data":    product,
+			"data":    productEntity,
 		})
 	}
 }
@@ -202,7 +196,7 @@ func DisableProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		product, err := disable.NewDisableProductUseCase(productRepository).Execute(disable.InputDisableProductDto{
+		err := product.NewDisableProductUseCase(productRepository).Execute(dtos.InputDisableProductDto{
 			ID: id,
 		})
 
@@ -210,9 +204,8 @@ func DisableProduct() fiber.Handler {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err)
 		}
 
-		return ctx.JSON(fiber.Map{
+		return ctx.Status(fiber.StatusNoContent).JSON(fiber.Map{
 			"success": true,
-			"data":    product,
 		})
 	}
 }
@@ -226,7 +219,7 @@ func EnableProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		product, err := enable.NewEnableProductUseCase(productRepository).Execute(enable.InputEnableProductDto{
+		err := product.NewEnableProductUseCase(productRepository).Execute(dtos.InputEnableProductDto{
 			ID: id,
 		})
 
@@ -238,9 +231,8 @@ func EnableProduct() fiber.Handler {
 			})
 		}
 
-		return ctx.JSON(fiber.Map{
+		return ctx.Status(fiber.StatusNoContent).JSON(fiber.Map{
 			"success": true,
-			"data":    product,
 		})
 	}
 }

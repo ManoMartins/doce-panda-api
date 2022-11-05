@@ -35,36 +35,78 @@ type Product struct {
 	UpdatedAt    time.Time  `json:"updatedAt"`
 }
 
+type ProductUpdateProps struct {
+	Name         string
+	PriceInCents int
+	Status       StatusEnum
+	Description  string
+	Flavor       string
+	Quantity     int
+	ImageUrl     string
+}
+
 type ProductInterface interface {
 	Enable() error
 	Disable() error
-	Validate() error
+	AddImageUrl(imageUrl string)
+	Validate(props Product) error
+	Update(productUpdate ProductUpdateProps) error
 }
 
-func NewProduct(product ProductProps) (*Product, error) {
-	p := &Product{
-		ID:           uuid.NewString(),
-		Status:       DISABLED,
+func NewProduct(product Product) (*Product, error) {
+	p := Product{
+		ID:           product.ID,
 		Name:         product.Name,
 		PriceInCents: product.PriceInCents,
+		Status:       product.Status,
+		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
-		Description:  product.Description,
+		ImageUrl:     product.ImageUrl,
+		CreatedAt:    product.CreatedAt,
+		UpdatedAt:    product.UpdatedAt,
 	}
 
-	err := p.Validate()
+	if product.ID == "" {
+		p.ID = uuid.NewString()
+	}
+
+	if product.Status == "" {
+		p.Status = DISABLED
+	}
+
+	err := p.Validate(p)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return p, nil
+	return &p, nil
 }
 
-func (p *Product) Validate() error {
+func (p *Product) Validate(props Product) error {
 	var Validator = validator.New()
 
-	return Validator.Struct(p)
+	return Validator.Struct(props)
+}
+
+func (p *Product) Update(productUpdate ProductUpdateProps) error {
+	p.Name = productUpdate.Name
+	p.PriceInCents = productUpdate.PriceInCents
+	p.Status = productUpdate.Status
+	p.Description = productUpdate.Description
+	p.Flavor = productUpdate.Flavor
+	p.Quantity = productUpdate.Quantity
+	p.ImageUrl = productUpdate.ImageUrl
+
+	err := p.Validate(*p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func (p *Product) Disable() error {
@@ -85,4 +127,8 @@ func (p *Product) Enable() error {
 	p.Status = ENABLED
 
 	return nil
+}
+
+func (p *Product) AddImageUrl(imageUrl string) {
+	p.ImageUrl = imageUrl
 }

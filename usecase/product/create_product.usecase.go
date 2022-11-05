@@ -1,8 +1,9 @@
-package create
+package product
 
 import (
 	"doce-panda/domain/product/entity"
 	"doce-panda/domain/product/repository"
+	"doce-panda/usecase/product/dtos"
 )
 
 type CreateProductUseCase struct {
@@ -15,8 +16,8 @@ func NewCreateProductUseCase(productRepository repository.ProductRepositoryInter
 	}
 }
 
-func (c CreateProductUseCase) Execute(input InputCreateProductDto) (*OutputCreateProductDto, error) {
-	product, err := entity.NewProduct(entity.ProductProps{
+func (c CreateProductUseCase) Execute(input dtos.InputCreateProductDto) (*dtos.OutputCreateProductDto, error) {
+	product, err := entity.NewProduct(entity.Product{
 		Name:         input.Name,
 		PriceInCents: input.PriceInCents,
 		Description:  input.Description,
@@ -28,20 +29,20 @@ func (c CreateProductUseCase) Execute(input InputCreateProductDto) (*OutputCreat
 		return nil, err
 	}
 
-	productCreated, err := c.productRepository.Create(*product)
+	err = c.productRepository.Create(*product)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &OutputCreateProductDto{
-		ID:           productCreated.ID,
-		Name:         productCreated.Name,
-		PriceInCents: productCreated.PriceInCents,
-		Description:  productCreated.Description,
-		Flavor:       productCreated.Flavor,
-		Quantity:     productCreated.Quantity,
-		CreatedAt:    productCreated.CreatedAt,
-		UpdatedAt:    productCreated.UpdatedAt,
+	return &dtos.OutputCreateProductDto{
+		ID:           product.ID,
+		Name:         product.Name,
+		PriceInCents: product.PriceInCents,
+		Description:  product.Description,
+		Flavor:       product.Flavor,
+		Quantity:     product.Quantity,
+		CreatedAt:    product.CreatedAt,
+		UpdatedAt:    product.UpdatedAt,
 	}, nil
 }

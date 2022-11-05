@@ -5,7 +5,6 @@ import (
 	"doce-panda/infra/gorm/product/model"
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"time"
 )
 
 type ProductRepositoryDb struct {
@@ -16,31 +15,65 @@ func NewProductRepository(db *gorm.DB) *ProductRepositoryDb {
 	return &ProductRepositoryDb{Db: db}
 }
 
-func (r ProductRepositoryDb) Find(ID string) (*model.Product, error) {
-	var product model.Product
+func (r ProductRepositoryDb) FindById(ID string) (*entity.Product, error) {
+	var productModel model.Product
 
-	r.Db.First(&product, "id = ?", ID)
+	r.Db.First(&productModel, "id = ?", ID)
 
-	if product.ID == "" {
+	if productModel.ID == "" {
 		return nil, fmt.Errorf("O produto não foi encontrado")
 	}
 
-	return &product, nil
+	return entity.NewProduct(entity.Product{
+		ID:           productModel.ID,
+		Name:         productModel.Name,
+		PriceInCents: productModel.PriceInCents,
+		Status:       productModel.Status,
+		Description:  productModel.Description,
+		Flavor:       productModel.Flavor,
+		Quantity:     productModel.Quantity,
+		ImageUrl:     productModel.ImageUrl,
+		CreatedAt:    productModel.CreatedAt,
+		UpdatedAt:    productModel.UpdatedAt,
+	})
 }
 
-func (r ProductRepositoryDb) FindAll() (*[]model.Product, error) {
-	var products []model.Product
+func (r ProductRepositoryDb) FindAll() (*[]entity.Product, error) {
+	var productsModel []model.Product
 
-	err := r.Db.Find(&products).Error
+	err := r.Db.Find(&productsModel).Error
 
 	if err != nil {
 		return nil, err
 	}
 
+	var products []entity.Product
+
+	for _, productModel := range productsModel {
+		product, err := entity.NewProduct(entity.Product{
+			ID:           productModel.ID,
+			Name:         productModel.Name,
+			PriceInCents: productModel.PriceInCents,
+			Status:       productModel.Status,
+			Description:  productModel.Description,
+			Flavor:       productModel.Flavor,
+			Quantity:     productModel.Quantity,
+			ImageUrl:     productModel.ImageUrl,
+			CreatedAt:    productModel.CreatedAt,
+			UpdatedAt:    productModel.UpdatedAt,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, *product)
+	}
+
 	return &products, nil
 }
 
-func (r ProductRepositoryDb) Create(product entity.Product) (*model.Product, error) {
+func (r ProductRepositoryDb) Create(product entity.Product) error {
 	productModel := model.Product{
 		ID:           product.ID,
 		Name:         product.Name,
@@ -49,27 +82,21 @@ func (r ProductRepositoryDb) Create(product entity.Product) (*model.Product, err
 		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt:    product.CreatedAt,
+		UpdatedAt:    product.UpdatedAt,
 	}
 
 	err := r.Db.Create(&productModel).Error
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &productModel, nil
+	return nil
 }
 
-func (r ProductRepositoryDb) Update(product entity.Product) (*model.Product, error) {
-	productModel, err := r.Find(product.ID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	pm := model.Product{
+func (r ProductRepositoryDb) Update(product entity.Product) error {
+	productModel := model.Product{
 		ID:           product.ID,
 		Name:         product.Name,
 		PriceInCents: product.PriceInCents,
@@ -77,17 +104,17 @@ func (r ProductRepositoryDb) Update(product entity.Product) (*model.Product, err
 		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
-		CreatedAt:    productModel.CreatedAt,
-		UpdatedAt:    time.Now(),
+		CreatedAt:    product.CreatedAt,
+		UpdatedAt:    product.UpdatedAt,
 	}
 
-	err = r.Db.Save(&pm).Error
+	err := r.Db.Save(&productModel).Error
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &pm, nil
+	return nil
 }
 
 func (r ProductRepositoryDb) Delete(ID string) error {
@@ -100,18 +127,6 @@ func (r ProductRepositoryDb) Delete(ID string) error {
 	}
 
 	return nil
-}
-
-func (r ProductRepositoryDb) Upload(ID string, fileUrl string) (*model.Product, error) {
-	product := entity.Product{ID: ID, ImageUrl: fileUrl}
-
-	err := r.Db.Save(&product).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.Product{}, nil
 }
 
 func (r ProductRepositoryDb) Disable(ID string) (*model.Product, error) {

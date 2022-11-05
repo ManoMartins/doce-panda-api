@@ -1,7 +1,8 @@
-package find_all
+package product
 
 import (
 	"doce-panda/domain/product/repository"
+	"doce-panda/usecase/product/dtos"
 )
 
 type FindAllProductUseCase struct {
@@ -14,24 +15,25 @@ func NewFindAllProductUseCase(productRepository repository.ProductRepositoryInte
 	}
 }
 
-func (c FindAllProductUseCase) Execute() (*[]OutputFindAllProductDto, error) {
+func (c FindAllProductUseCase) Execute() (*[]dtos.OutputFindAllProductDto, error) {
 	products, err := c.productRepository.FindAll()
 
 	if err != nil {
 		return nil, err
 	}
 
-	var output []OutputFindAllProductDto
+	var output []dtos.OutputFindAllProductDto
 
 	for _, product := range *products {
-		output = append(output, OutputFindAllProductDto{
+		output = append(output, dtos.OutputFindAllProductDto{
 			ID:           product.ID,
 			Name:         product.Name,
 			PriceInCents: product.PriceInCents,
-			Status:       StatusEnum(product.Status),
+			Status:       product.Status,
 			Description:  product.Description,
 			Flavor:       product.Flavor,
 			Quantity:     product.Quantity,
+			ImageUrl:     product.ImageUrl,
 			CreatedAt:    product.CreatedAt,
 			UpdatedAt:    product.UpdatedAt,
 		})

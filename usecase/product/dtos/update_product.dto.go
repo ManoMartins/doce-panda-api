@@ -1,4 +1,4 @@
-package update
+package dtos
 
 import "time"
 
@@ -22,6 +22,7 @@ type OutputUpdateProductDto struct {
 	Status       StatusEnum `json:"status"`
 	Flavor       string     `json:"flavor"`
 	Quantity     int        `json:"quantity"`
+	ImageUrl     string     `json:"ImageUrl"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
 }

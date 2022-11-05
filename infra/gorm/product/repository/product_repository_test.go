@@ -11,7 +11,7 @@ func TestProductRepository_Create_Success(t *testing.T) {
 	db := gorm.NewDbTest()
 	defer db.Close()
 
-	product, _ := entity.NewProduct(entity.ProductProps{
+	product, _ := entity.NewProduct(entity.Product{
 		Name:         "Bolo de pote",
 		PriceInCents: 750,
 		Description:  "Um bolo de pote de chocolate",
@@ -21,11 +21,11 @@ func TestProductRepository_Create_Success(t *testing.T) {
 
 	productRepository := ProductRepositoryDb{Db: db}
 
-	_, err := productRepository.Create(*product)
+	err := productRepository.Create(*product)
 
 	require.Nil(t, err)
 
-	productFound, err := productRepository.Find(product.ID)
+	productFound, err := productRepository.FindById(product.ID)
 
 	require.Equal(t, product.ID, productFound.ID)
 }
@@ -34,7 +34,7 @@ func TestProductRepository_Update_Success(t *testing.T) {
 	db := gorm.NewDbTest()
 	defer db.Close()
 
-	product, _ := entity.NewProduct(entity.ProductProps{
+	product, _ := entity.NewProduct(entity.Product{
 		Name:         "Bolo de pote",
 		PriceInCents: 750,
 		Description:  "Um bolo de pote de chocolate",
@@ -44,11 +44,11 @@ func TestProductRepository_Update_Success(t *testing.T) {
 
 	productRepository := ProductRepositoryDb{Db: db}
 
-	_, err := productRepository.Create(*product)
+	err := productRepository.Create(*product)
 
 	require.Nil(t, err)
 
-	productFound, err := productRepository.Find(product.ID)
+	productFound, err := productRepository.FindById(product.ID)
 
 	productFound.PriceInCents = 950
 
@@ -56,12 +56,12 @@ func TestProductRepository_Update_Success(t *testing.T) {
 		ID:           productFound.ID,
 		Name:         productFound.Name,
 		PriceInCents: 950,
-		Status:       entity.StatusEnum(productFound.Status),
+		Status:       productFound.Status,
 		Description:  productFound.Description,
 		Flavor:       productFound.Flavor,
 		Quantity:     productFound.Quantity,
 	}
-	_, err = productRepository.Update(productUpdate)
+	err = productRepository.Update(productUpdate)
 
 	require.Equal(t, 950, productFound.PriceInCents)
 }
@@ -70,21 +70,21 @@ func TestProductRepository_FindAll_Success(t *testing.T) {
 	db := gorm.NewDbTest()
 	defer db.Close()
 
-	product, _ := entity.NewProduct(entity.ProductProps{
+	product, _ := entity.NewProduct(entity.Product{
 		Name:         "Bolo de pote",
 		PriceInCents: 750,
 		Description:  "Um bolo de pote de chocolate",
 		Flavor:       "chocolate",
 		Quantity:     5,
 	})
-	product2, _ := entity.NewProduct(entity.ProductProps{
+	product2, _ := entity.NewProduct(entity.Product{
 		Name:         "Bolo de pote",
 		PriceInCents: 950,
 		Description:  "Um bolo de pote de chocolate",
 		Flavor:       "ninho",
 		Quantity:     5,
 	})
-	product3, _ := entity.NewProduct(entity.ProductProps{
+	product3, _ := entity.NewProduct(entity.Product{
 		Name:         "Donuts",
 		PriceInCents: 1000,
 		Description:  "Um bolo de pote de chocolate",
@@ -94,9 +94,9 @@ func TestProductRepository_FindAll_Success(t *testing.T) {
 
 	productRepository := ProductRepositoryDb{Db: db}
 
-	_, err := productRepository.Create(*product)
-	_, err = productRepository.Create(*product2)
-	_, err = productRepository.Create(*product3)
+	err := productRepository.Create(*product)
+	err = productRepository.Create(*product2)
+	err = productRepository.Create(*product3)
 
 	require.Nil(t, err)
 

@@ -1,8 +1,8 @@
-package find
+package product
 
 import (
 	"doce-panda/domain/product/repository"
-	"fmt"
+	"doce-panda/usecase/product/dtos"
 )
 
 type FindProductUseCase struct {
@@ -15,21 +15,22 @@ func NewFindProductUseCase(productRepository repository.ProductRepositoryInterfa
 	}
 }
 
-func (c FindProductUseCase) Execute(input InputFindProductDto) (*OutputFindProductDto, error) {
-	product, err := c.productRepository.Find(input.ID)
+func (c FindProductUseCase) Execute(input dtos.InputFindProductDto) (*dtos.OutputFindProductDto, error) {
+	product, err := c.productRepository.FindById(input.ID)
 
 	if err != nil {
-		return nil, fmt.Errorf("produto não encontrado")
+		return nil, err
 	}
 
-	return &OutputFindProductDto{
+	return &dtos.OutputFindProductDto{
 		ID:           product.ID,
 		Name:         product.Name,
 		PriceInCents: product.PriceInCents,
-		Status:       StatusEnum(product.Status),
+		Status:       product.Status,
 		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
+		ImageUrl:     product.ImageUrl,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
 	}, nil

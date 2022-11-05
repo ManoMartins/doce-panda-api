@@ -1,7 +1,8 @@
-package upload
+package product
 
 import (
 	"doce-panda/domain/product/repository"
+	"doce-panda/usecase/product/dtos"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +18,12 @@ func NewUploadProductUseCase(productRepository repository.ProductRepositoryInter
 	}
 }
 
-func (c UploadProductUseCase) Execute(input InputUploadProductDto) (*OutputUploadProductDto, error) {
+func (c UploadProductUseCase) Execute(input dtos.InputUploadProductDto) (*dtos.OutputUploadProductDto, error) {
+	product, err := c.productRepository.FindById(input.ID)
+
+	if err != nil {
+		return nil, err
+	}
 
 	imageUri := fmt.Sprintf("/uploads/products/%s", input.File.Filename)
 
@@ -39,21 +45,23 @@ func (c UploadProductUseCase) Execute(input InputUploadProductDto) (*OutputUploa
 		return nil, err
 	}
 
-	productUpdated, err := c.productRepository.Upload(input.ID, imageUri)
+	product.AddImageUrl(imageUri)
+
+	err = c.productRepository.Update(*product)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &OutputUploadProductDto{
-		ID:           productUpdated.ID,
-		Name:         productUpdated.Name,
-		PriceInCents: productUpdated.PriceInCents,
-		Description:  productUpdated.Description,
-		Flavor:       productUpdated.Flavor,
-		Quantity:     productUpdated.Quantity,
-		ImageUrl:     productUpdated.ImageUrl,
-		CreatedAt:    productUpdated.CreatedAt,
-		UpdatedAt:    productUpdated.UpdatedAt,
+	return &dtos.OutputUploadProductDto{
+		ID:           product.ID,
+		Name:         product.Name,
+		PriceInCents: product.PriceInCents,
+		Description:  product.Description,
+		Flavor:       product.Flavor,
+		Quantity:     product.Quantity,
+		ImageUrl:     product.ImageUrl,
+		CreatedAt:    product.CreatedAt,
+		UpdatedAt:    product.UpdatedAt,
 	}, nil
 }

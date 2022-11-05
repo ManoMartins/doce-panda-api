@@ -1,4 +1,4 @@
-package upload
+package dtos
 
 import (
 	"doce-panda/domain/product/entity"
