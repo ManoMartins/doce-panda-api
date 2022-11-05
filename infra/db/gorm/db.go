@@ -22,7 +22,7 @@ type Database struct {
 
 func NewDb() *gorm.DB {
 	dbInstance := &Database{
-		Dsn:           "dbname=doce-panda sslmode=disable user=postgres password=mysecretpassword host=localhost",
+		Dsn:           "dbname=doce-panda sslmode=disable user=postgres password=docker host=localhost",
 		DbType:        "postgres",
 		Debug:         false,
 		AutoMigrateDb: true,

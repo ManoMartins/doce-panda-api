@@ -201,6 +201,55 @@ func CreateAddress() fiber.Handler {
 	}
 }
 
+func UpdateAddress() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id := ctx.Params("id")
+		addressId := ctx.Params("addressId")
+
+		body := new(dtos.InputUpdateAddressDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+		addressRepository := repository.NewAddressRepository(db)
+
+		input := dtos.InputUpdateAddressDto{
+			ID:           addressId,
+			City:         body.City,
+			State:        body.State,
+			Street:       body.Street,
+			Number:       body.Number,
+			ZipCode:      body.ZipCode,
+			Neighborhood: body.Neighborhood,
+			IsMain:       body.IsMain,
+			UserID:       id,
+		}
+
+		output, err := user.NewUpdateAddressUseCase(addressRepository).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+			"data":    output,
+		})
+	}
+}
+
 func DeleteAddress() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id := ctx.Params("id")
