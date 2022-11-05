@@ -14,14 +14,6 @@ const (
 	ENABLED  StatusEnum = "ENABLED"
 )
 
-type ProductProps struct {
-	Name         string
-	PriceInCents int
-	Description  string
-	Flavor       string
-	Quantity     int
-}
-
 type Product struct {
 	ID           string     `json:"id" validate:"required"`
 	Name         string     `json:"name" validate:"required"`
