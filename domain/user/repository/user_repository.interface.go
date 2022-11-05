@@ -5,7 +5,8 @@ import (
 )
 
 type UserRepositoryInterface interface {
-	Find(ID string) (*entity.User, error)
+	FindById(ID string) (*entity.User, error)
+	FindByEmail(email string) (*entity.User, error)
 	Delete(ID string) error
 	FindAll() (*[]entity.User, error)
 	Update(user entity.User) error

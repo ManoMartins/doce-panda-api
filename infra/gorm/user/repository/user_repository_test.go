@@ -11,7 +11,7 @@ func TestUserRepository_Find_Success(t *testing.T) {
 	db := gorm.NewDbTest()
 	defer db.Close()
 
-	user, _ := entity.NewUser(entity.UserProps{
+	user, _ := entity.NewUser(entity.User{
 		Name:           "John Doe",
 		Email:          "john.doe@test.com",
 		Gender:         "male",
@@ -22,11 +22,11 @@ func TestUserRepository_Find_Success(t *testing.T) {
 
 	userRepository := UserRepositoryDb{Db: db}
 
-	_, err := userRepository.Create(*user)
+	err := userRepository.Create(*user)
 
 	require.Nil(t, err)
 
-	userFound, err := userRepository.Find(user.ID)
+	userFound, err := userRepository.FindById(user.ID)
 
 	require.Equal(t, user.ID, userFound.ID)
 }

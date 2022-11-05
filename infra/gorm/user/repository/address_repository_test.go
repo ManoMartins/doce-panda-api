@@ -46,7 +46,7 @@ func TestAddressRepository_Find_Success(t *testing.T) {
 
 	require.Equal(t, address.ID, addressFound.ID)
 
-	userFound, err := userRepository.Find(user.ID)
+	userFound, err := userRepository.FindById(user.ID)
 	fmt.Println(userFound)
 
 }

@@ -14,7 +14,7 @@ func NewDestroyUserUseCase(productRepository repository.UserRepositoryInterface)
 }
 
 func (c DestroyUserUseCase) Execute(input dtos.InputDestroyUserDto) error {
-	_, err := c.UserRepository.Find(input.ID)
+	_, err := c.UserRepository.FindById(input.ID)
 
 	if err != nil {
 		return err

@@ -4,6 +4,7 @@ import (
 	"doce-panda/domain/user/entity"
 	"doce-panda/domain/user/repository"
 	"doce-panda/usecase/user/dtos"
+	"fmt"
 )
 
 type CreateUserUseCase struct {
@@ -17,6 +18,12 @@ func NewCreateUserUseCase(userRepository repository.UserRepositoryInterface) *Cr
 }
 
 func (c CreateUserUseCase) Execute(input dtos.InputCreateUserDto) (*dtos.OutputCreateUserDto, error) {
+	userAlreadyExist, _ := c.userRepository.FindByEmail(input.Email)
+
+	if userAlreadyExist != nil {
+		return nil, fmt.Errorf("Usuário já existe")
+	}
+
 	user, err := entity.NewUser(entity.User{
 		Name:           input.Name,
 		Email:          input.Email,

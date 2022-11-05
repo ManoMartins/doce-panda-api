@@ -14,7 +14,7 @@ func NewFindUserUseCase(userRepository repository.UserRepositoryInterface) *Find
 }
 
 func (c FindUserUseCase) Execute(input dtos.InputFindUserDto) (*dtos.OutputFindUserDto, error) {
-	user, err := c.userRepository.Find(input.ID)
+	user, err := c.userRepository.FindById(input.ID)
 
 	if err != nil {
 		return nil, err

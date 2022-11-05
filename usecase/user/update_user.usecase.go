@@ -18,7 +18,7 @@ func NewUpdateUserUseCase(userRepository repository.UserRepositoryInterface) *Up
 }
 
 func (c UpdateUserUseCase) Execute(input dtos.InputUpdateUserDto) (*dtos.OutputUpdateUserDto, error) {
-	userFound, err := c.userRepository.Find(input.ID)
+	userFound, err := c.userRepository.FindById(input.ID)
 
 	if err != nil {
 		return nil, err

@@ -15,7 +15,7 @@ func NewUserRepository(db *gorm.DB) *UserRepositoryDb {
 	return &UserRepositoryDb{Db: db}
 }
 
-func (r UserRepositoryDb) Find(ID string) (*entity.User, error) {
+func (r UserRepositoryDb) FindById(ID string) (*entity.User, error) {
 	var user model.User
 
 	r.Db.Preload("Addresses").First(&user, "id = ?", ID)
@@ -58,6 +58,29 @@ func (r UserRepositoryDb) Find(ID string) (*entity.User, error) {
 		RewardPoints:   user.RewardPoints,
 		Email:          user.Email,
 		Addresses:      addresses,
+		CreatedAt:      user.CreatedAt,
+		UpdatedAt:      user.UpdatedAt,
+	})
+}
+
+func (r UserRepositoryDb) FindByEmail(email string) (*entity.User, error) {
+	var user model.User
+
+	r.Db.First(&user, "email = ?", email)
+
+	if user.ID == "" {
+		return nil, fmt.Errorf("O usuário não foi encontrado")
+	}
+
+	return entity.NewUser(entity.User{
+		ID:             user.ID,
+		Name:           user.Name,
+		Gender:         user.Gender,
+		Password:       user.Password,
+		PhoneNumber:    user.PhoneNumber,
+		DocumentNumber: user.DocumentNumber,
+		RewardPoints:   user.RewardPoints,
+		Email:          user.Email,
 		CreatedAt:      user.CreatedAt,
 		UpdatedAt:      user.UpdatedAt,
 	})
