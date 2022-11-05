@@ -15,7 +15,7 @@ func NewAddressRepository(db *gorm.DB) *AddressRepositoryDb {
 	return &AddressRepositoryDb{Db: db}
 }
 
-func (r AddressRepositoryDb) Find(ID string) (*entity.Address, error) {
+func (r AddressRepositoryDb) FindById(ID string) (*entity.Address, error) {
 	var addressModel model.Address
 
 	r.Db.First(&addressModel, "id = ?", ID)
@@ -39,7 +39,7 @@ func (r AddressRepositoryDb) Find(ID string) (*entity.Address, error) {
 	})
 }
 
-func (r AddressRepositoryDb) FindMain() (*entity.Address, error) {
+func (r AddressRepositoryDb) FindByMain() (*entity.Address, error) {
 	var addressModel model.Address
 
 	r.Db.First(&addressModel, "is_main = ?", true)

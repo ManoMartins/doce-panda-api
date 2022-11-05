@@ -12,7 +12,7 @@ func TestAddressRepository_Find_Success(t *testing.T) {
 	db := gorm.NewDbTest()
 	defer db.Close()
 
-	user, _ := entity.NewUser(entity.UserProps{
+	user, _ := entity.NewUser(entity.User{
 		Name:           "John Doe",
 		Email:          "john.doe@test.com",
 		Gender:         "male",
@@ -23,9 +23,9 @@ func TestAddressRepository_Find_Success(t *testing.T) {
 
 	userRepository := UserRepositoryDb{Db: db}
 
-	_, err := userRepository.Create(*user)
+	err := userRepository.Create(*user)
 
-	address, err := entity.NewAddress(entity.AddressProps{
+	address, err := entity.NewAddress(entity.Address{
 		City:         "Suzano",
 		State:        "São Paulo",
 		Street:       "Rua Bandeirantes",
@@ -33,16 +33,15 @@ func TestAddressRepository_Find_Success(t *testing.T) {
 		ZipCode:      "08694180",
 		Neighborhood: "Jardim revista",
 		IsMain:       false,
-		UserId:       user.ID,
 	})
 
 	addressRepository := AddressRepositoryDb{Db: db}
 
-	_, err = addressRepository.Create(*address)
+	err = addressRepository.Create(*address)
 
 	require.Nil(t, err)
 
-	addressFound, err := addressRepository.Find(address.ID)
+	addressFound, err := addressRepository.FindById(address.ID)
 
 	require.Equal(t, address.ID, addressFound.ID)
 

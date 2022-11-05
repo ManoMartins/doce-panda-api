@@ -15,7 +15,7 @@ func NewCreateAddressUseCase(addressRepository repository.AddressRepositoryInter
 }
 
 func (c CreateAddressUseCase) Execute(input dtos.InputCreateAddressDto) (*dtos.OutputCreateAddressDto, error) {
-	addressMain, _ := c.addressRepository.FindMain()
+	addressMain, _ := c.addressRepository.FindByMain()
 
 	if addressMain != nil {
 		addressMain.DisableMain()

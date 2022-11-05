@@ -18,7 +18,7 @@ func NewUpdateAddressUseCase(addressRepository repository.AddressRepositoryInter
 }
 
 func (c UpdateAddressUseCase) Execute(input dtos.InputUpdateAddressDto) (*dtos.OutputUpdateAddressDto, error) {
-	addressFound, err := c.addressRepository.Find(input.ID)
+	addressFound, err := c.addressRepository.FindById(input.ID)
 
 	if err != nil {
 		return nil, err

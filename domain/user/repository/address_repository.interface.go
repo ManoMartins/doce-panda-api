@@ -5,8 +5,8 @@ import (
 )
 
 type AddressRepositoryInterface interface {
-	Find(ID string) (*entity.Address, error)
-	FindMain() (*entity.Address, error)
+	FindById(ID string) (*entity.Address, error)
+	FindByMain() (*entity.Address, error)
 	Delete(ID string) error
 	FindAll() (*[]entity.Address, error)
 	Update(address entity.Address) error

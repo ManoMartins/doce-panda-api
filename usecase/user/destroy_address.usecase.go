@@ -15,7 +15,7 @@ func NewDestroyAddressUseCase(productRepository repository.AddressRepositoryInte
 }
 
 func (c DestroyAddressUseCase) Execute(input dtos.InputDestroyAddressDto) error {
-	addressFound, err := c.AddressRepository.Find(input.AddressID)
+	addressFound, err := c.AddressRepository.FindById(input.AddressID)
 
 	if err != nil {
 		return err
