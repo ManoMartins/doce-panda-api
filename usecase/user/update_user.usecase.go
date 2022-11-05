@@ -26,7 +26,6 @@ func (c UpdateUserUseCase) Execute(input dtos.InputUpdateUserDto) (*dtos.OutputU
 
 	err = userFound.Update(entity.UserUpdateProps{
 		Name:           input.Name,
-		Email:          input.Email,
 		Gender:         input.Gender,
 		PhoneNumber:    input.PhoneNumber,
 		DocumentNumber: input.DocumentNumber,

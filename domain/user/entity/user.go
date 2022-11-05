@@ -23,7 +23,6 @@ type User struct {
 
 type UserUpdateProps struct {
 	Name           string
-	Email          string
 	Gender         string
 	PhoneNumber    string
 	DocumentNumber string
@@ -74,7 +73,6 @@ func (u *User) Update(userUpdate UserUpdateProps) error {
 	u.Gender = userUpdate.Gender
 	u.PhoneNumber = userUpdate.PhoneNumber
 	u.DocumentNumber = userUpdate.DocumentNumber
-	u.Email = userUpdate.Email
 
 	err := u.Validate(*u)
 

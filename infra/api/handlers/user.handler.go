@@ -116,7 +116,6 @@ func UpdateUser() fiber.Handler {
 		input := dtos.InputUpdateUserDto{
 			ID:             id,
 			Name:           body.Name,
-			Email:          body.Email,
 			Gender:         body.Gender,
 			PhoneNumber:    body.PhoneNumber,
 			DocumentNumber: body.DocumentNumber,

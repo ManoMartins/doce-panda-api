@@ -5,7 +5,6 @@ import "time"
 type InputUpdateUserDto struct {
 	ID             string `json:"id"`
 	Name           string `json:"name"`
-	Email          string `json:"email"`
 	Gender         string `json:"gender"`
 	PhoneNumber    string `json:"phoneNumber"`
 	DocumentNumber string `json:"documentNumber"`
