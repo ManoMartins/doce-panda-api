@@ -42,6 +42,7 @@ type ProductInterface interface {
 	Disable() error
 	AddImageUrl(imageUrl string)
 	Validate(props Product) error
+	RemoveQuantity(amount int) error
 	Update(productUpdate ProductUpdateProps) error
 }
 
@@ -123,4 +124,14 @@ func (p *Product) Enable() error {
 
 func (p *Product) AddImageUrl(imageUrl string) {
 	p.ImageUrl = imageUrl
+}
+
+func (p *Product) RemoveQuantity(amount int) error {
+	if p.Quantity < amount {
+		return fmt.Errorf("O produto não tem quantidade suficiente")
+	}
+
+	p.Quantity -= amount
+
+	return nil
 }

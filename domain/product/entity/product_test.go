@@ -7,7 +7,7 @@ import (
 )
 
 func TestProductValidate_EmptyProps_ErrorRequiredFields(t *testing.T) {
-	product, _ := entity.NewProduct(entity.ProductProps{
+	_, err := entity.NewProduct(entity.Product{
 		Name:         "",
 		PriceInCents: 0,
 		Description:  "",
@@ -15,13 +15,11 @@ func TestProductValidate_EmptyProps_ErrorRequiredFields(t *testing.T) {
 		Quantity:     0,
 	})
 
-	err := product.Validate()
-
 	require.NotNil(t, err)
 }
 
 func TestProductValidate_FillProps_Success(t *testing.T) {
-	product, _ := entity.NewProduct(entity.ProductProps{
+	_, err := entity.NewProduct(entity.Product{
 		Name:         "Bolo de pote",
 		PriceInCents: 750,
 		Description:  "Bolo de pote sabor de chocolate",
@@ -29,13 +27,11 @@ func TestProductValidate_FillProps_Success(t *testing.T) {
 		Quantity:     5,
 	})
 
-	err := product.Validate()
-
 	require.Nil(t, err)
 }
 
 func TestProduct_CreateProduct_Success(t *testing.T) {
-	product, _ := entity.NewProduct(entity.ProductProps{
+	product, _ := entity.NewProduct(entity.Product{
 		Name:         "Bolo de pote",
 		PriceInCents: 750,
 		Description:  "Bolo de pote sabor de chocolate",

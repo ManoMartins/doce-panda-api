@@ -1,13 +1,18 @@
 package entity
 
 import (
+	"doce-panda/domain/product/entity"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type OrderItem struct {
-	ProductID    string `json:"productId" validate:"required"`
-	Quantity     int    `json:"quantity" validate:"required,gte=0"`
-	TotalInCents int    `json:"totalInCents" validate:"required,gte=0"`
+	ID           string         `json:"id" validate:"required"`
+	ProductID    string         `json:"productId" validate:"required"`
+	OrderID      string         `json:"orderId"`
+	Quantity     int            `json:"quantity" validate:"required,gte=0"`
+	TotalInCents int            `json:"totalInCents" validate:"required,gte=0"`
+	Product      entity.Product `json:"product"`
 }
 
 type OrderItemInterface interface {
@@ -16,9 +21,16 @@ type OrderItemInterface interface {
 
 func NewOrderItem(orderItem OrderItem) (*OrderItem, error) {
 	o := OrderItem{
+		ID:           orderItem.ID,
 		ProductID:    orderItem.ProductID,
+		OrderID:      orderItem.OrderID,
 		Quantity:     orderItem.Quantity,
 		TotalInCents: orderItem.TotalInCents,
+		Product:      orderItem.Product,
+	}
+
+	if orderItem.ID == "" {
+		o.ID = uuid.NewString()
 	}
 
 	err := o.Validate(o)

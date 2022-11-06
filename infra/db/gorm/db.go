@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	orderModel "doce-panda/infra/gorm/order/model"
 	productModel "doce-panda/infra/gorm/product/model"
 	"doce-panda/infra/gorm/user/model"
 	"github.com/jinzhu/gorm"
@@ -22,7 +23,7 @@ type Database struct {
 
 func NewDb() *gorm.DB {
 	dbInstance := &Database{
-		Dsn:           "dbname=doce-panda sslmode=disable user=postgres password=docker host=localhost",
+		Dsn:           "dbname=doce-panda sslmode=disable user=postgres password=mysecretpassword host=localhost",
 		DbType:        "postgres",
 		Debug:         false,
 		AutoMigrateDb: true,
@@ -74,8 +75,10 @@ func (d *Database) Connect() (*gorm.DB, error) {
 	}
 
 	if d.AutoMigrateDb {
-		d.Db.AutoMigrate(&productModel.Product{}, &model.User{}, &model.Address{})
+		d.Db.AutoMigrate(&productModel.Product{}, &model.User{}, &model.Address{}, &orderModel.Order{}, &orderModel.OrderItem{})
 		d.Db.Model(model.Address{}).AddForeignKey("user_id", "users (id)", "CASCADE", "CASCADE")
+		d.Db.Model(orderModel.OrderItem{}).AddForeignKey("order_id", "orders (id)", "CASCADE", "CASCADE")
+		d.Db.Model(orderModel.OrderItem{}).AddForeignKey("product_id", "products (id)", "CASCADE", "CASCADE")
 	}
 
 	return d.Db, nil
