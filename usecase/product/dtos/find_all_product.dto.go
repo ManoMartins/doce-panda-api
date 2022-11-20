@@ -14,6 +14,6 @@ type OutputFindAllProductDto struct {
 	Flavor       string            `json:"flavor"`
 	Quantity     int               `json:"quantity"`
 	ImageUrl     string            `json:"imageUrl"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	CreatedAt    time.Time         `json:"createdAt"`
+	UpdatedAt    time.Time         `json:"updatedAt"`
 }

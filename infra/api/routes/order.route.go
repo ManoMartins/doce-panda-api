@@ -2,11 +2,12 @@ package routes
 
 import (
 	"doce-panda/infra/api/handlers"
+	"doce-panda/infra/api/middlewares"
 	"github.com/gofiber/fiber/v2"
 )
 
 func OrderRouter(app fiber.Router) {
-	app.Get("/orders/:id", handlers.FindByIdOrder())
-	app.Get("/orders", handlers.FindAllOrder())
-	app.Post("/orders", handlers.CreateOrder())
+	app.Get("/orders/:id", middlewares.EnsureAuthenticated(), handlers.FindByIdOrder())
+	app.Get("/orders", middlewares.EnsureAuthenticated(), handlers.FindAllOrder())
+	app.Post("/orders", middlewares.EnsureAuthenticated(), handlers.CreateOrder())
 }

@@ -9,6 +9,7 @@ import (
 func Server() error {
 	app := fiber.New()
 	app.Use(cors.New())
+
 	app.Static("/uploads", "./tmp")
 
 	routes.Router(app)

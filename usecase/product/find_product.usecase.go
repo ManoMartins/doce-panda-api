@@ -30,7 +30,7 @@ func (c FindProductUseCase) Execute(input dtos.InputFindProductDto) (*dtos.Outpu
 		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
-		ImageUrl:     product.ImageUrl,
+		ImageUrl:     "http://localhost:3333" + product.ImageUrl,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
 	}, nil

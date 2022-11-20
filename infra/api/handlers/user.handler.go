@@ -8,6 +8,40 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func LoginUser() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		body := new(dtos.InputAuthenticationUserDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		userRepo := repository.NewUserRepository(db)
+		output, err := user.NewAuthenticateUserUseCase(userRepo).Execute(*body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+			"success": true,
+			"data":    output,
+		})
+	}
+}
+
 func FindUser() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id := ctx.Params("id")
@@ -165,7 +199,7 @@ func DeleteUser() fiber.Handler {
 
 func CreateAddress() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		id := ctx.Params("id")
+		id := ctx.Locals("userId").(string)
 		body := new(dtos.InputCreateAddressDto)
 		err := ctx.BodyParser(body)
 
@@ -200,9 +234,36 @@ func CreateAddress() fiber.Handler {
 	}
 }
 
+func FindAllAddressByUserId() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id := ctx.Locals("userId").(string)
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		input := dtos.InputFindAllAddressDto{UserID: id}
+
+		addressRepository := repository.NewAddressRepository(db)
+		output, err := user.NewFindAllAddressUseCase(addressRepository).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+			"success": true,
+			"data":    output,
+		})
+	}
+}
+
 func UpdateAddress() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		id := ctx.Params("id")
+		id := ctx.Locals("userId").(string)
 		addressId := ctx.Params("addressId")
 
 		body := new(dtos.InputUpdateAddressDto)
@@ -251,7 +312,7 @@ func UpdateAddress() fiber.Handler {
 
 func DeleteAddress() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		id := ctx.Params("id")
+		id := ctx.Locals("userId").(string)
 		addressId := ctx.Params("addressId")
 
 		input := dtos.InputDestroyAddressDto{

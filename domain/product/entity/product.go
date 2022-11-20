@@ -22,7 +22,7 @@ type Product struct {
 	Description  string     `json:"description" validate:"required"`
 	Flavor       string     `json:"flavor" validate:"required"`
 	Quantity     int        `json:"quantity" validate:"required"`
-	ImageUrl     string     `json:"image_url"`
+	ImageUrl     string     `json:"imageUrl"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
 }

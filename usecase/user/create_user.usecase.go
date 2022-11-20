@@ -5,6 +5,7 @@ import (
 	"doce-panda/domain/user/repository"
 	"doce-panda/usecase/user/dtos"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CreateUserUseCase struct {
@@ -24,11 +25,14 @@ func (c CreateUserUseCase) Execute(input dtos.InputCreateUserDto) (*dtos.OutputC
 		return nil, fmt.Errorf("Usuário já existe")
 	}
 
+	password := []byte(input.Password)
+	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+
 	user, err := entity.NewUser(entity.User{
 		Name:           input.Name,
 		Email:          input.Email,
 		Gender:         input.Gender,
-		Password:       input.Password,
+		Password:       string(hashedPassword),
 		PhoneNumber:    input.PhoneNumber,
 		DocumentNumber: input.DocumentNumber,
 	})

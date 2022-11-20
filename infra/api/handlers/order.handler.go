@@ -18,9 +18,9 @@ func FindByIdOrder() fiber.Handler {
 		db := gorm.NewDb()
 		defer db.Close()
 
-		orderRepository := repository.NewOrderRepository(db)
+		orderRepo := repository.NewOrderRepository(db)
 
-		output, err := order.NewFindByIdOrderUseCase(orderRepository).Execute(input)
+		output, err := order.NewFindByIdOrderUseCase(orderRepo).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -42,9 +42,9 @@ func FindAllOrder() fiber.Handler {
 		db := gorm.NewDb()
 		defer db.Close()
 
-		orderRepository := repository.NewOrderRepository(db)
+		orderRepo := repository.NewOrderRepository(db)
 
-		output, err := order.NewFindAllOrderUseCase(orderRepository).Execute()
+		output, err := order.NewFindAllOrderUseCase(orderRepo).Execute()
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -65,23 +65,31 @@ func FindAllOrder() fiber.Handler {
 func CreateOrder() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		body := new(dtos.InputCreateOrderDto)
+		userId := ctx.Locals("userId").(string)
 		err := ctx.BodyParser(body)
 
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).JSON(err)
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
 		}
 
 		db := gorm.NewDb()
 		defer db.Close()
 
 		input := dtos.InputCreateOrderDto{
+			AddressID:  body.AddressID,
+			UserID:     userId,
 			OrderItems: body.OrderItems,
+			Payment:    body.Payment,
 		}
 
-		orderRepository := repository.NewOrderRepository(db)
-		productRepository := productRepository.NewProductRepository(db)
+		orderRepo := repository.NewOrderRepository(db)
+		productRepo := productRepository.NewProductRepository(db)
 
-		output, err := order.NewCreateOrderUseCase(orderRepository, productRepository).Execute(input)
+		output, err := order.NewCreateOrderUseCase(orderRepo, productRepo).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{

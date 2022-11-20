@@ -25,7 +25,7 @@ func (c UploadProductUseCase) Execute(input dtos.InputUploadProductDto) (*dtos.O
 		return nil, err
 	}
 
-	imageUri := fmt.Sprintf("/uploads/products/%s", input.File.Filename)
+	imageUri := fmt.Sprintf("/uploads/%s", input.File.Filename)
 
 	src, err := input.File.Open()
 	if err != nil {
@@ -60,7 +60,7 @@ func (c UploadProductUseCase) Execute(input dtos.InputUploadProductDto) (*dtos.O
 		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
-		ImageUrl:     product.ImageUrl,
+		ImageUrl:     "http://localhost:3333" + product.ImageUrl,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
 	}, nil

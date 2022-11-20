@@ -3,6 +3,9 @@ package order
 import (
 	"doce-panda/domain/order/entity"
 	"doce-panda/domain/order/repository"
+	"doce-panda/domain/order/service"
+	paymentEntity "doce-panda/domain/payment/entity"
+	paymentService "doce-panda/domain/payment/service"
 	productEntity "doce-panda/domain/product/entity"
 	productRepository "doce-panda/domain/product/repository"
 	"doce-panda/usecase/order/dtos"
@@ -20,7 +23,6 @@ func NewCreateOrderUseCase(orderRepository repository.OrderRepositoryInterface, 
 
 func (c CreateOrderUseCase) Execute(input dtos.InputCreateOrderDto) (*dtos.OutputCreateOrderDto, error) {
 	var orderItems []entity.OrderItem
-
 	for _, inputOrderItem := range input.OrderItems {
 		product, err := c.productRepository.FindById(inputOrderItem.ProductID)
 
@@ -50,31 +52,42 @@ func (c CreateOrderUseCase) Execute(input dtos.InputCreateOrderDto) (*dtos.Outpu
 		orderItems = append(orderItems, *orderItem)
 	}
 
-	totalInCents := 0
-	for _, orderItem := range orderItems {
-		totalInCents += orderItem.TotalInCents
+	var paymentsEntity []paymentEntity.CreditCard
+	for _, payment := range input.Payment {
+		paymentsEntity = append(paymentsEntity, paymentEntity.CreditCard{ID: payment.PaymentID, TotalInCents: payment.TotalInCents})
 	}
 
-	order, err := entity.NewOrder(entity.Order{
-		TotalInCents: totalInCents,
-	})
+	paymentTotalInCents := paymentService.Total(paymentsEntity)
 
-	order.AddOrderItems(orderItems)
+	order, err := entity.NewOrder(entity.Order{
+		TotalInCents: service.Total(orderItems),
+		Payments:     paymentsEntity,
+		UserID:       input.UserID,
+		AddressID:    input.AddressID,
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	c.orderRepository.Create(*order)
+	if paymentTotalInCents != order.TotalInCents {
+		return nil, fmt.Errorf("O valor do pagamento está diferente do total")
+	}
+
+	order.AddOrderItems(orderItems)
+
+	if err = c.orderRepository.Create(*order); err != nil {
+		return nil, err
+	}
 
 	for _, orderItem := range order.OrderItems {
-		err := orderItem.Product.RemoveQuantity(orderItem.Quantity)
-
-		if err != nil {
+		if err := orderItem.Product.RemoveQuantity(orderItem.Quantity); err != nil {
 			return nil, err
 		}
 
-		c.productRepository.Update(orderItem.Product)
+		if err = c.productRepository.Update(orderItem.Product); err != nil {
+			return nil, err
+		}
 	}
 
 	return &dtos.OutputCreateOrderDto{

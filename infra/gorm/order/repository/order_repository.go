@@ -6,6 +6,7 @@ import (
 	"doce-panda/infra/gorm/order/model"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type OrderRepositoryDb struct {
@@ -133,13 +134,28 @@ func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 }
 
 func (o OrderRepositoryDb) Create(order entity.Order) error {
+	var paymentsModel []model.OrderPayment
+
+	for _, pm := range order.Payments {
+		paymentsModel = append(paymentsModel, model.OrderPayment{
+			CreditCardID: pm.ID,
+			OrderID:      order.ID,
+			TotalInCents: pm.TotalInCents,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		})
+	}
+
 	orderModel := model.Order{
 		ID:           order.ID,
 		TotalInCents: order.TotalInCents,
 		Status:       order.Status,
+		AddressID:    order.AddressID,
+		UserID:       order.UserID,
 	}
 
-	err := o.Db.Create(&orderModel).Error
+	err := o.Db.Omit("Payments").Create(&orderModel).Error
+	o.Db.Model(&orderModel).Association("Payments").Append(paymentsModel)
 
 	if err != nil {
 		return err

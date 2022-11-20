@@ -104,6 +104,7 @@ func (r ProductRepositoryDb) Update(product entity.Product) error {
 		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
+		ImageUrl:     product.ImageUrl,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
 	}

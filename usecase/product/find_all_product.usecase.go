@@ -33,7 +33,7 @@ func (c FindAllProductUseCase) Execute() (*[]dtos.OutputFindAllProductDto, error
 			Description:  product.Description,
 			Flavor:       product.Flavor,
 			Quantity:     product.Quantity,
-			ImageUrl:     product.ImageUrl,
+			ImageUrl:     "http://localhost:3333" + product.ImageUrl,
 			CreatedAt:    product.CreatedAt,
 			UpdatedAt:    product.UpdatedAt,
 		})

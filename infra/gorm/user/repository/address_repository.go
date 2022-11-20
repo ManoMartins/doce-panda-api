@@ -75,10 +75,10 @@ func (r AddressRepositoryDb) Delete(ID string) error {
 	return nil
 }
 
-func (r AddressRepositoryDb) FindAll() (*[]entity.Address, error) {
+func (r AddressRepositoryDb) FindAllByUserId(userID string) (*[]entity.Address, error) {
 	var addressesModel []model.Address
 
-	err := r.Db.Find(&addressesModel).Error
+	err := r.Db.Find(&addressesModel, "user_id = ?", userID).Error
 
 	if err != nil {
 		return nil, err

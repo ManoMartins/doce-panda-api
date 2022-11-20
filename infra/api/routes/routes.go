@@ -6,4 +6,5 @@ func Router(app fiber.Router) {
 	ProductRouter(app)
 	UserRouter(app)
 	OrderRouter(app)
+	CreditCardRouter(app)
 }

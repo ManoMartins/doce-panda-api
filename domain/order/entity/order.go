@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"doce-panda/domain/payment/entity"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
@@ -15,10 +16,13 @@ const (
 )
 
 type Order struct {
-	ID           string      `json:"id" validate:"required"`
-	OrderItems   []OrderItem `json:"orderItems"`
-	TotalInCents int         `json:"totalInCents"`
-	Status       StatusEnum  `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED'"`
+	ID           string              `json:"id" validate:"required"`
+	OrderItems   []OrderItem         `json:"orderItems"`
+	TotalInCents int                 `json:"totalInCents"`
+	Status       StatusEnum          `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED'"`
+	Payments     []entity.CreditCard `json:"payments" validate:"required"`
+	AddressID    string              `json:"addressId"`
+	UserID       string              `json:"userId"`
 }
 
 type OrderInterface interface {
@@ -32,6 +36,9 @@ func NewOrder(order Order) (*Order, error) {
 		OrderItems:   order.OrderItems,
 		TotalInCents: order.TotalInCents,
 		Status:       order.Status,
+		Payments:     order.Payments,
+		AddressID:    order.AddressID,
+		UserID:       order.UserID,
 	}
 
 	if order.ID == "" {
@@ -42,7 +49,7 @@ func NewOrder(order Order) (*Order, error) {
 		o.Status = WAITING_PAYMENT
 	}
 
-	err := o.Validate(o)
+	err := o.Validate()
 
 	if err != nil {
 		return nil, err
@@ -51,10 +58,10 @@ func NewOrder(order Order) (*Order, error) {
 	return &o, nil
 }
 
-func (o *Order) Validate(props Order) error {
+func (o *Order) Validate() error {
 	var Validator = validator.New()
 
-	return Validator.Struct(props)
+	return Validator.Struct(*o)
 }
 
 func (o *Order) AddOrderItems(orderItems []OrderItem) {

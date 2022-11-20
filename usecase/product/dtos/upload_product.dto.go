@@ -19,7 +19,7 @@ type OutputUploadProductDto struct {
 	Status       entity.StatusEnum `json:"status"`
 	Flavor       string            `json:"flavor"`
 	Quantity     int               `json:"quantity"`
-	ImageUrl     string            `json:"image_url"`
+	ImageUrl     string            `json:"imageUrl"`
 	CreatedAt    time.Time         `json:"createdAt"`
 	UpdatedAt    time.Time         `json:"updatedAt"`
 }
