@@ -9,10 +9,10 @@ type InputCreateOrderDto struct {
 		ProductID string `json:"productId"`
 		Quantity  int    `json:"quantity"`
 	} `json:"orderItems"`
-	Payment []struct {
+	Payments []struct {
 		PaymentID    string `json:"paymentId"`
 		TotalInCents int    `json:"totalInCents"`
-	} `json:"payment"`
+	} `json:"payments"`
 }
 
 type OutputCreateOrderDto struct {

@@ -12,7 +12,7 @@ func UserRouter(app fiber.Router) {
 	app.Get("/users", middlewares.EnsureAuthenticated(), handlers.FindAllUser())
 	app.Get("/users/address", middlewares.EnsureAuthenticated(), handlers.FindAllAddressByUserId())
 	app.Get("/users/:id", middlewares.EnsureAuthenticated(), handlers.FindUser())
-	app.Post("/users", middlewares.EnsureAuthenticated(), handlers.CreateUser())
+	app.Post("/users", handlers.CreateUser())
 	app.Put("/users/:id", middlewares.EnsureAuthenticated(), handlers.UpdateUser())
 	app.Delete("/users/:id", middlewares.EnsureAuthenticated(), handlers.DeleteUser())
 

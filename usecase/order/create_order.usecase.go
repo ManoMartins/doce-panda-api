@@ -53,7 +53,7 @@ func (c CreateOrderUseCase) Execute(input dtos.InputCreateOrderDto) (*dtos.Outpu
 	}
 
 	var paymentsEntity []paymentEntity.CreditCard
-	for _, payment := range input.Payment {
+	for _, payment := range input.Payments {
 		paymentsEntity = append(paymentsEntity, paymentEntity.CreditCard{ID: payment.PaymentID, TotalInCents: payment.TotalInCents})
 	}
 
@@ -70,7 +70,7 @@ func (c CreateOrderUseCase) Execute(input dtos.InputCreateOrderDto) (*dtos.Outpu
 		return nil, err
 	}
 
-	if paymentTotalInCents != order.TotalInCents {
+	if paymentTotalInCents != (order.TotalInCents + 500) {
 		return nil, fmt.Errorf("O valor do pagamento está diferente do total")
 	}
 

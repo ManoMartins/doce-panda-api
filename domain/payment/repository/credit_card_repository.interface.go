@@ -1,8 +1,6 @@
 package repository
 
-import (
-	"doce-panda/domain/payment/entity"
-)
+import "doce-panda/domain/payment/entity"
 
 type CreditCardRepositoryInterface interface {
 	FindById(ID string) (*entity.CreditCard, error)

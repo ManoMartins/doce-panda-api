@@ -83,7 +83,7 @@ func CreateOrder() fiber.Handler {
 			AddressID:  body.AddressID,
 			UserID:     userId,
 			OrderItems: body.OrderItems,
-			Payment:    body.Payment,
+			Payments:   body.Payments,
 		}
 
 		orderRepo := repository.NewOrderRepository(db)

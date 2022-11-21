@@ -20,7 +20,7 @@ type Order struct {
 	OrderItems   []OrderItem         `json:"orderItems"`
 	TotalInCents int                 `json:"totalInCents"`
 	Status       StatusEnum          `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED'"`
-	Payments     []entity.CreditCard `json:"payments" validate:"required"`
+	Payments     []entity.CreditCard `json:"payments"`
 	AddressID    string              `json:"addressId"`
 	UserID       string              `json:"userId"`
 }

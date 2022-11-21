@@ -82,6 +82,7 @@ func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 
 	for _, orderModel := range ordersModel {
 		var orderItems []entity.OrderItem
+
 		for _, orderItemModel := range orderModel.OrderItems {
 			product, err := productEntity.NewProduct(productEntity.Product{
 				ID:           orderItemModel.Product.ID,
@@ -121,6 +122,8 @@ func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 			OrderItems:   orderItems,
 			TotalInCents: orderModel.TotalInCents,
 			Status:       orderModel.Status,
+			UserID:       orderModel.UserID,
+			AddressID:    orderModel.AddressID,
 		})
 
 		if err != nil {
