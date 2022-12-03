@@ -105,3 +105,40 @@ func CreateOrder() fiber.Handler {
 		})
 	}
 }
+
+func UpdateOrder() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id := ctx.Params("id")
+		body := new(dtos.InputUpdateOrderDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		input := dtos.InputUpdateOrderDto{ID: id, Status: body.Status}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		orderRepo := repository.NewOrderRepository(db)
+
+		err = order.NewUpdateStatusOrderUseCase(orderRepo).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}

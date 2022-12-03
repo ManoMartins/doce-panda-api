@@ -4,6 +4,7 @@ import (
 	"doce-panda/domain/product/entity"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"time"
 )
 
 type OrderItem struct {
@@ -13,6 +14,8 @@ type OrderItem struct {
 	Quantity     int            `json:"quantity" validate:"required,gte=0"`
 	TotalInCents int            `json:"totalInCents" validate:"required,gte=0"`
 	Product      entity.Product `json:"product"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
 type OrderItemInterface interface {

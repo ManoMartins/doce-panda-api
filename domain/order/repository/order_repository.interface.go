@@ -8,4 +8,5 @@ type OrderRepositoryInterface interface {
 	FindById(ID string) (*entity.Order, error)
 	FindAll() (*[]entity.Order, error)
 	Create(order entity.Order) error
+	UpdateStatus(order entity.Order) error
 }

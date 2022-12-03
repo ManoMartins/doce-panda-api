@@ -4,6 +4,7 @@ import (
 	"doce-panda/domain/payment/entity"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"time"
 )
 
 type StatusEnum string
@@ -23,11 +24,14 @@ type Order struct {
 	Payments     []entity.CreditCard `json:"payments"`
 	AddressID    string              `json:"addressId"`
 	UserID       string              `json:"userId"`
+	CreatedAt    time.Time           `json:"createdAt"`
+	UpdatedAt    time.Time           `json:"updatedAt"`
 }
 
 type OrderInterface interface {
 	Validate(props Order) error
 	AddOrderItems(orderItems []OrderItem)
+	UpdateStatus(status StatusEnum) error
 }
 
 func NewOrder(order Order) (*Order, error) {
@@ -39,6 +43,8 @@ func NewOrder(order Order) (*Order, error) {
 		Payments:     order.Payments,
 		AddressID:    order.AddressID,
 		UserID:       order.UserID,
+		CreatedAt:    order.CreatedAt,
+		UpdatedAt:    order.UpdatedAt,
 	}
 
 	if order.ID == "" {
@@ -70,4 +76,10 @@ func (o *Order) AddOrderItems(orderItems []OrderItem) {
 	}
 
 	o.OrderItems = orderItems
+}
+
+func (o *Order) UpdateStatus(status StatusEnum) error {
+	o.Status = status
+
+	return o.Validate()
 }

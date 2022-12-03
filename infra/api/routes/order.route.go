@@ -10,4 +10,5 @@ func OrderRouter(app fiber.Router) {
 	app.Get("/orders/:id", middlewares.EnsureAuthenticated(), handlers.FindByIdOrder())
 	app.Get("/orders", middlewares.EnsureAuthenticated(), handlers.FindAllOrder())
 	app.Post("/orders", middlewares.EnsureAuthenticated(), handlers.CreateOrder())
+	app.Patch("/orders/:id", middlewares.EnsureAuthenticated(), handlers.UpdateOrder())
 }

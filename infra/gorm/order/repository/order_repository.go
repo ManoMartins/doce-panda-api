@@ -4,6 +4,7 @@ import (
 	"doce-panda/domain/order/entity"
 	productEntity "doce-panda/domain/product/entity"
 	"doce-panda/infra/gorm/order/model"
+	productModel "doce-panda/infra/gorm/product/model"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"time"
@@ -183,6 +184,59 @@ func (o OrderRepositoryDb) Create(order entity.Order) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (o OrderRepositoryDb) UpdateStatus(order entity.Order) error {
+	var orderItemsModel []model.OrderItem
+
+	for _, orderItem := range order.OrderItems {
+		orderItemsModel = append(orderItemsModel, model.OrderItem{
+			ID:           orderItem.ID,
+			ProductID:    orderItem.ProductID,
+			OrderID:      orderItem.OrderID,
+			Quantity:     orderItem.Quantity,
+			TotalInCents: orderItem.TotalInCents,
+			Product: productModel.Product{
+				ID:           orderItem.Product.ID,
+				Name:         orderItem.Product.Name,
+				PriceInCents: orderItem.Product.PriceInCents,
+				Status:       orderItem.Product.Status,
+				Description:  orderItem.Product.Description,
+				Flavor:       orderItem.Product.Flavor,
+				Quantity:     orderItem.Product.Quantity,
+				ImageUrl:     orderItem.Product.ImageUrl,
+				CreatedAt:    orderItem.Product.CreatedAt,
+				UpdatedAt:    orderItem.Product.UpdatedAt,
+			},
+			CreatedAt: orderItem.CreatedAt,
+			UpdatedAt: orderItem.UpdatedAt,
+		})
+	}
+
+	var paymentsModel []model.OrderPayment
+
+	for _, pm := range order.Payments {
+		paymentsModel = append(paymentsModel, model.OrderPayment{
+			CreditCardID: pm.ID,
+			OrderID:      order.ID,
+			TotalInCents: pm.TotalInCents,
+			CreatedAt:    pm.CreatedAt,
+			UpdatedAt:    pm.UpdatedAt,
+		})
+	}
+
+	orderModel := model.Order{
+		ID:     order.ID,
+		Status: order.Status,
+	}
+
+	err := o.Db.Model(&orderModel).Update("status", orderModel.Status).Error
+
+	if err != nil {
+		return err
 	}
 
 	return nil
