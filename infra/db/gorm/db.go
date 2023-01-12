@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	couponModel "doce-panda/infra/gorm/coupon/model"
 	orderModel "doce-panda/infra/gorm/order/model"
 	paymentModel "doce-panda/infra/gorm/payment/model"
 	productModel "doce-panda/infra/gorm/product/model"
@@ -76,14 +77,16 @@ func (d *Database) Connect() (*gorm.DB, error) {
 	}
 
 	if d.AutoMigrateDb {
-		d.Db.AutoMigrate(&productModel.Product{}, &model.User{}, &model.Address{}, &orderModel.Order{}, &orderModel.OrderItem{}, &paymentModel.CreditCard{}, &orderModel.OrderPayment{})
+		d.Db.AutoMigrate(&productModel.Product{}, &model.User{}, &model.Address{}, &orderModel.Order{}, &orderModel.OrderItem{}, &paymentModel.CreditCard{}, &orderModel.OrderPayment{}, &couponModel.Coupon{})
 		d.Db.Model(model.Address{}).AddForeignKey("user_id", "users (id)", "CASCADE", "CASCADE")
 		d.Db.Model(orderModel.Order{}).AddForeignKey("address_id", "addresses (id)", "CASCADE", "CASCADE")
 		d.Db.Model(orderModel.Order{}).AddForeignKey("user_id", "users (id)", "CASCADE", "CASCADE")
+		d.Db.Model(orderModel.Order{}).AddForeignKey("coupon_id", "coupons (id)", "CASCADE", "CASCADE")
 		d.Db.Model(orderModel.OrderItem{}).AddForeignKey("order_id", "orders (id)", "CASCADE", "CASCADE")
 		d.Db.Model(orderModel.OrderItem{}).AddForeignKey("product_id", "products (id)", "CASCADE", "CASCADE")
 		d.Db.Model(orderModel.OrderPayment{}).AddForeignKey("order_id", "orders (id)", "CASCADE", "CASCADE")
 		d.Db.Model(orderModel.OrderPayment{}).AddForeignKey("credit_card_id", "credit_cards (id)", "CASCADE", "CASCADE")
+		d.Db.Model(couponModel.Coupon{}).AddForeignKey("user_id", "users (id)", "CASCADE", "CASCADE")
 	}
 
 	return d.Db, nil

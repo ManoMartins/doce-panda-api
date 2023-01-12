@@ -154,6 +154,7 @@ func (o OrderRepositoryDb) Create(order entity.Order) error {
 		ID:           order.ID,
 		TotalInCents: order.TotalInCents,
 		Status:       order.Status,
+		CouponID:     order.CouponID,
 		AddressID:    order.AddressID,
 		UserID:       order.UserID,
 	}

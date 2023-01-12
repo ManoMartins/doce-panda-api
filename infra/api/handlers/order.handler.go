@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"doce-panda/infra/db/gorm"
+	couponRepository "doce-panda/infra/gorm/coupon/repository"
 	"doce-panda/infra/gorm/order/repository"
 	productRepository "doce-panda/infra/gorm/product/repository"
 	"doce-panda/usecase/order"
@@ -58,7 +59,6 @@ func FindAllOrder() fiber.Handler {
 			"success": true,
 			"data":    output,
 		})
-
 	}
 }
 
@@ -80,16 +80,18 @@ func CreateOrder() fiber.Handler {
 		defer db.Close()
 
 		input := dtos.InputCreateOrderDto{
-			AddressID:  body.AddressID,
-			UserID:     userId,
-			OrderItems: body.OrderItems,
-			Payments:   body.Payments,
+			AddressID:   body.AddressID,
+			UserID:      userId,
+			OrderItems:  body.OrderItems,
+			Payments:    body.Payments,
+			VoucherCode: body.VoucherCode,
 		}
 
 		orderRepo := repository.NewOrderRepository(db)
+		couponRepo := couponRepository.NewCouponRepository(db)
 		productRepo := productRepository.NewProductRepository(db)
 
-		output, err := order.NewCreateOrderUseCase(orderRepo, productRepo).Execute(input)
+		output, err := order.NewCreateOrderUseCase(orderRepo, couponRepo, productRepo).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -139,6 +141,50 @@ func UpdateOrder() fiber.Handler {
 
 		return ctx.JSON(fiber.Map{
 			"success": true,
+		})
+	}
+}
+
+func RequestExchangeOrder() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id := ctx.Params("id")
+		userId := ctx.Locals("userId").(string)
+		body := new(dtos.InputRequestExchangeOrderDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		input := dtos.InputRequestExchangeOrderDto{
+			ID:         id,
+			UserID:     userId,
+			OrderItems: body.OrderItems,
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		orderRepo := repository.NewOrderRepository(db)
+		couponRepo := couponRepository.NewCouponRepository(db)
+
+		output, err := order.NewRequestExchangeOrderUseCase(orderRepo, couponRepo).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+			"data":    output,
 		})
 	}
 }

@@ -11,4 +11,5 @@ func OrderRouter(app fiber.Router) {
 	app.Get("/orders", middlewares.EnsureAuthenticated(), handlers.FindAllOrder())
 	app.Post("/orders", middlewares.EnsureAuthenticated(), handlers.CreateOrder())
 	app.Patch("/orders/:id", middlewares.EnsureAuthenticated(), handlers.UpdateOrder())
+	app.Post("/orders/:id/request-exchange", middlewares.EnsureAuthenticated(), handlers.RequestExchangeOrder())
 }

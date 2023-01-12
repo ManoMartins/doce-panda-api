@@ -1,50 +1,62 @@
 package entity
 
 import (
+	couponEntity "doce-panda/domain/coupon/entity"
 	"doce-panda/domain/payment/entity"
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"math"
 	"time"
 )
 
 type StatusEnum string
 
 const (
-	WAITING_PAYMENT StatusEnum = "WAITING_PAYMENT"
-	PREPARING       StatusEnum = "PREPARING"
-	IN_TRANSIT      StatusEnum = "IN_TRANSIT"
-	DELIVERED       StatusEnum = "DELIVERED"
+	WAITING_PAYMENT  StatusEnum = "WAITING_PAYMENT"
+	PREPARING        StatusEnum = "PREPARING"
+	IN_TRANSIT       StatusEnum = "IN_TRANSIT"
+	DELIVERED        StatusEnum = "DELIVERED"
+	EXCHANGE_REQUEST StatusEnum = "EXCHANGE_REQUEST"
 )
 
 type Order struct {
-	ID           string              `json:"id" validate:"required"`
-	OrderItems   []OrderItem         `json:"orderItems"`
-	TotalInCents int                 `json:"totalInCents"`
-	Status       StatusEnum          `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED'"`
-	Payments     []entity.CreditCard `json:"payments"`
-	AddressID    string              `json:"addressId"`
-	UserID       string              `json:"userId"`
-	CreatedAt    time.Time           `json:"createdAt"`
-	UpdatedAt    time.Time           `json:"updatedAt"`
+	ID              string              `json:"id" validate:"required"`
+	OrderItems      []OrderItem         `json:"orderItems"`
+	SubTotalInCents int                 `json:"subTotalInCents"`
+	TotalInCents    int                 `json:"totalInCents"`
+	Status          StatusEnum          `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED' 'EXCHANGE_REQUEST'"`
+	Payments        []entity.CreditCard `json:"payments"`
+	DeliveredFee    int                 `json:"deliveredFee"`
+	CouponID        *string             `json:"couponId"`
+	AddressID       string              `json:"addressId"`
+	UserID          string              `json:"userId"`
+	CreatedAt       time.Time           `json:"createdAt"`
+	UpdatedAt       time.Time           `json:"updatedAt"`
 }
 
 type OrderInterface interface {
-	Validate(props Order) error
+	Validate() error
 	AddOrderItems(orderItems []OrderItem)
 	UpdateStatus(status StatusEnum) error
+	RequestExchange() error
+	ApplyCoupon(coupon couponEntity.Coupon) (int, error)
 }
 
 func NewOrder(order Order) (*Order, error) {
 	o := Order{
-		ID:           order.ID,
-		OrderItems:   order.OrderItems,
-		TotalInCents: order.TotalInCents,
-		Status:       order.Status,
-		Payments:     order.Payments,
-		AddressID:    order.AddressID,
-		UserID:       order.UserID,
-		CreatedAt:    order.CreatedAt,
-		UpdatedAt:    order.UpdatedAt,
+		ID:              order.ID,
+		OrderItems:      order.OrderItems,
+		SubTotalInCents: order.SubTotalInCents,
+		TotalInCents:    order.TotalInCents,
+		Status:          order.Status,
+		Payments:        order.Payments,
+		DeliveredFee:    order.DeliveredFee,
+		CouponID:        order.CouponID,
+		AddressID:       order.AddressID,
+		UserID:          order.UserID,
+		CreatedAt:       order.CreatedAt,
+		UpdatedAt:       order.UpdatedAt,
 	}
 
 	if order.ID == "" {
@@ -53,6 +65,10 @@ func NewOrder(order Order) (*Order, error) {
 
 	if order.Status == "" {
 		o.Status = WAITING_PAYMENT
+	}
+
+	if order.CouponID == nil {
+		o.TotalInCents = o.SubTotalInCents + o.DeliveredFee
 	}
 
 	err := o.Validate()
@@ -82,4 +98,34 @@ func (o *Order) UpdateStatus(status StatusEnum) error {
 	o.Status = status
 
 	return o.Validate()
+}
+
+func (o *Order) RequestExchange() error {
+	if o.Status != DELIVERED {
+		return fmt.Errorf("O pedido precisa está com status de entregue")
+	}
+
+	o.Status = EXCHANGE_REQUEST
+
+	return o.Validate()
+}
+
+func (o *Order) ApplyCoupon(coupon couponEntity.Coupon) (int, error) {
+	if coupon.Status == couponEntity.USED {
+		return 0, fmt.Errorf("O cupom já foi utilizado")
+	}
+
+	if coupon.UserID != o.UserID {
+		return 0, fmt.Errorf("O cupom não pertence ao usuário")
+	}
+
+	o.TotalInCents = o.SubTotalInCents + o.DeliveredFee - coupon.Amount
+
+	if o.TotalInCents < 0 {
+		moneyExchange := o.TotalInCents
+		o.TotalInCents = 0
+		return int(math.Abs(float64(moneyExchange))), nil
+	}
+
+	return 0, nil
 }

@@ -1,6 +1,8 @@
 package order
 
 import (
+	couponEntity "doce-panda/domain/coupon/entity"
+	couponRepository "doce-panda/domain/coupon/repository"
 	"doce-panda/domain/order/entity"
 	"doce-panda/domain/order/repository"
 	"doce-panda/domain/order/service"
@@ -14,11 +16,12 @@ import (
 
 type CreateOrderUseCase struct {
 	orderRepository   repository.OrderRepositoryInterface
+	couponRepository  couponRepository.CouponRepositoryInterface
 	productRepository productRepository.ProductRepositoryInterface
 }
 
-func NewCreateOrderUseCase(orderRepository repository.OrderRepositoryInterface, productRepository productRepository.ProductRepositoryInterface) *CreateOrderUseCase {
-	return &CreateOrderUseCase{orderRepository: orderRepository, productRepository: productRepository}
+func NewCreateOrderUseCase(orderRepository repository.OrderRepositoryInterface, couponRepository couponRepository.CouponRepositoryInterface, productRepository productRepository.ProductRepositoryInterface) *CreateOrderUseCase {
+	return &CreateOrderUseCase{orderRepository: orderRepository, couponRepository: couponRepository, productRepository: productRepository}
 }
 
 func (c CreateOrderUseCase) Execute(input dtos.InputCreateOrderDto) (*dtos.OutputCreateOrderDto, error) {
@@ -57,20 +60,43 @@ func (c CreateOrderUseCase) Execute(input dtos.InputCreateOrderDto) (*dtos.Outpu
 		paymentsEntity = append(paymentsEntity, paymentEntity.CreditCard{ID: payment.PaymentID, TotalInCents: payment.TotalInCents})
 	}
 
+	var err error
+	var couponId *string
+	var coupon *couponEntity.Coupon
+	if input.VoucherCode != "" {
+		coupon, err = c.couponRepository.FindByVoucherCode(input.VoucherCode)
+		couponId = &coupon.ID
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	paymentTotalInCents := paymentService.Total(paymentsEntity)
 
 	order, err := entity.NewOrder(entity.Order{
-		TotalInCents: service.Total(orderItems),
-		Payments:     paymentsEntity,
-		UserID:       input.UserID,
-		AddressID:    input.AddressID,
+		SubTotalInCents: service.Total(orderItems),
+		Payments:        paymentsEntity,
+		DeliveredFee:    500,
+		UserID:          input.UserID,
+		CouponID:        couponId,
+		AddressID:       input.AddressID,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	if paymentTotalInCents != (order.TotalInCents + 500) {
+	var moneyExchange int
+	if coupon != nil {
+		moneyExchange, err = order.ApplyCoupon(*coupon)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if paymentTotalInCents != (order.TotalInCents) {
 		return nil, fmt.Errorf("O valor do pagamento está diferente do total")
 	}
 
@@ -90,10 +116,35 @@ func (c CreateOrderUseCase) Execute(input dtos.InputCreateOrderDto) (*dtos.Outpu
 		}
 	}
 
+	var couponMoneyExchange *couponEntity.Coupon
+	if coupon != nil {
+		if err = coupon.UseCoupon(); err != nil {
+			return nil, err
+		}
+
+		if err = c.couponRepository.UpdateStatus(*coupon); err != nil {
+			return nil, err
+		}
+
+		if moneyExchange > 0 {
+			couponMoneyExchange, err = couponEntity.NewCoupon(couponEntity.Coupon{
+				UserID: input.UserID,
+				Amount: moneyExchange,
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			c.couponRepository.Create(*couponMoneyExchange)
+		}
+	}
+
 	return &dtos.OutputCreateOrderDto{
-		ID:           order.ID,
-		OrderItems:   order.OrderItems,
-		TotalInCents: order.TotalInCents,
-		Status:       order.Status,
+		ID:                  order.ID,
+		OrderItems:          order.OrderItems,
+		TotalInCents:        order.TotalInCents,
+		Status:              order.Status,
+		CouponMoneyExchange: couponMoneyExchange,
 	}, nil
 }

@@ -1,6 +1,9 @@
 package dtos
 
-import "doce-panda/domain/order/entity"
+import (
+	couponEntity "doce-panda/domain/coupon/entity"
+	"doce-panda/domain/order/entity"
+)
 
 type InputCreateOrderDto struct {
 	AddressID  string `json:"addressId"`
@@ -13,11 +16,13 @@ type InputCreateOrderDto struct {
 		PaymentID    string `json:"paymentId"`
 		TotalInCents int    `json:"totalInCents"`
 	} `json:"payments"`
+	VoucherCode string `json:"voucherCode"`
 }
 
 type OutputCreateOrderDto struct {
-	ID           string             `json:"id"`
-	OrderItems   []entity.OrderItem `json:"orderItems"`
-	TotalInCents int                `json:"totalInCents"`
-	Status       entity.StatusEnum  `json:"status"`
+	ID                  string               `json:"id"`
+	OrderItems          []entity.OrderItem   `json:"orderItems"`
+	TotalInCents        int                  `json:"totalInCents"`
+	Status              entity.StatusEnum    `json:"status"`
+	CouponMoneyExchange *couponEntity.Coupon `json:"couponMoneyExchange"`
 }
