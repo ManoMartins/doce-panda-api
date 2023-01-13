@@ -12,4 +12,6 @@ func OrderRouter(app fiber.Router) {
 	app.Post("/orders", middlewares.EnsureAuthenticated(), handlers.CreateOrder())
 	app.Patch("/orders/:id", middlewares.EnsureAuthenticated(), handlers.UpdateOrder())
 	app.Post("/orders/:id/request-exchange", middlewares.EnsureAuthenticated(), handlers.RequestExchangeOrder())
+	app.Patch("/orders/:id/accept-request-exchange", middlewares.EnsureAuthenticated(), handlers.AcceptRequestExchangeOrder())
+	app.Patch("/orders/:id/deny-request-exchange", middlewares.EnsureAuthenticated(), handlers.DenyRequestExchangeOrder())
 }

@@ -13,11 +13,13 @@ import (
 type StatusEnum string
 
 const (
-	WAITING_PAYMENT  StatusEnum = "WAITING_PAYMENT"
-	PREPARING        StatusEnum = "PREPARING"
-	IN_TRANSIT       StatusEnum = "IN_TRANSIT"
-	DELIVERED        StatusEnum = "DELIVERED"
-	EXCHANGE_REQUEST StatusEnum = "EXCHANGE_REQUEST"
+	WAITING_PAYMENT         StatusEnum = "WAITING_PAYMENT"
+	PREPARING               StatusEnum = "PREPARING"
+	IN_TRANSIT              StatusEnum = "IN_TRANSIT"
+	DELIVERED               StatusEnum = "DELIVERED"
+	EXCHANGE_REQUEST        StatusEnum = "EXCHANGE_REQUEST"
+	ACCEPT_EXCHANGE_REQUEST StatusEnum = "ACCEPT_EXCHANGE_REQUEST"
+	DENY_EXCHANGE_REQUEST   StatusEnum = "DENY_EXCHANGE_REQUEST"
 )
 
 type Order struct {
@@ -41,6 +43,8 @@ type OrderInterface interface {
 	UpdateStatus(status StatusEnum) error
 	RequestExchange() error
 	ApplyCoupon(coupon couponEntity.Coupon) (int, error)
+	AcceptExchangeRequest() error
+	DenyExchangeRequest() error
 }
 
 func NewOrder(order Order) (*Order, error) {
@@ -128,4 +132,32 @@ func (o *Order) ApplyCoupon(coupon couponEntity.Coupon) (int, error) {
 	}
 
 	return 0, nil
+}
+
+func (o *Order) AcceptExchangeRequest() error {
+	if o.Status != EXCHANGE_REQUEST {
+		return fmt.Errorf("Deve ter sido solicitado a troca")
+	}
+
+	if o.Status == DENY_EXCHANGE_REQUEST {
+		return fmt.Errorf("O pedido já teve a troca negada")
+	}
+
+	o.Status = ACCEPT_EXCHANGE_REQUEST
+
+	return nil
+}
+
+func (o *Order) DenyExchangeRequest() error {
+	if o.Status != EXCHANGE_REQUEST {
+		return fmt.Errorf("Deve ter sido solicitado a troca")
+	}
+
+	if o.Status == ACCEPT_EXCHANGE_REQUEST {
+		return fmt.Errorf("O pedido já teve a troca aceita")
+	}
+
+	o.Status = DENY_EXCHANGE_REQUEST
+
+	return nil
 }

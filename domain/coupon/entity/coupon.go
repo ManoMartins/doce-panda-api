@@ -11,14 +11,15 @@ import (
 type StatusEnum string
 
 const (
-	NEW  StatusEnum = "NEW"
-	USED StatusEnum = "USED"
+	NEW                 StatusEnum = "NEW"
+	USED                StatusEnum = "USED"
+	AWAITING_PERMISSION StatusEnum = "AWAITING_PERMISSION"
 )
 
 type Coupon struct {
 	ID          string     `json:"id" validate:"required"`
 	VoucherCode string     `json:"voucherCode" validate:"required"`
-	Status      StatusEnum `json:"status" validate:"required,oneof='NEW' 'USED'"`
+	Status      StatusEnum `json:"status" validate:"required,oneof='NEW' 'USED' 'AWAITING_PERMISSION'"`
 	UserID      string     `json:"userId"`
 	Amount      int        `json:"amount" validate:"required"`
 	CreatedAt   time.Time  `json:"createdAt"`
@@ -33,6 +34,7 @@ type CouponInterface interface {
 	Validate() error
 	Update(couponUpdate CouponUpdateProps) error
 	UseCoupon() error
+	AcceptToUseCoupon() error
 }
 
 func NewCoupon(coupon Coupon) (*Coupon, error) {
@@ -55,7 +57,7 @@ func NewCoupon(coupon Coupon) (*Coupon, error) {
 	}
 
 	if coupon.Status == "" {
-		c.Status = NEW
+		c.Status = AWAITING_PERMISSION
 	}
 
 	err := c.Validate()
@@ -86,7 +88,29 @@ func (c *Coupon) Update(couponUpdate CouponUpdateProps) error {
 }
 
 func (c *Coupon) UseCoupon() error {
+	if c.Status == USED {
+		return fmt.Errorf("O cupom já foi utilizado")
+	}
+
+	if c.Status == AWAITING_PERMISSION {
+		return fmt.Errorf("O cupom está sendo analisado")
+	}
+
 	c.Status = USED
+
+	return nil
+}
+
+func (c *Coupon) AcceptToUseCoupon() error {
+	if c.Status == USED {
+		return fmt.Errorf("O cupom já foi utilizado")
+	}
+
+	if c.Status != AWAITING_PERMISSION {
+		return fmt.Errorf("O cupom já foi analisado")
+	}
+
+	c.Status = NEW
 
 	return nil
 }

@@ -188,3 +188,85 @@ func RequestExchangeOrder() fiber.Handler {
 		})
 	}
 }
+
+func AcceptRequestExchangeOrder() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id := ctx.Params("id")
+		body := new(dtos.InputAcceptRequestExchangeOrderDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		input := dtos.InputAcceptRequestExchangeOrderDto{
+			ID:          id,
+			VoucherCode: body.VoucherCode,
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		orderRepo := repository.NewOrderRepository(db)
+		couponRepo := couponRepository.NewCouponRepository(db)
+
+		err = order.NewAcceptRequestExchangeOrderUseCase(orderRepo, couponRepo).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func DenyRequestExchangeOrder() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id := ctx.Params("id")
+		body := new(dtos.InputDenyRequestExchangeOrderDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		input := dtos.InputDenyRequestExchangeOrderDto{
+			ID:          id,
+			VoucherCode: body.VoucherCode,
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		orderRepo := repository.NewOrderRepository(db)
+		couponRepo := couponRepository.NewCouponRepository(db)
+
+		err = order.NewDenyRequestExchangeOrderUseCase(orderRepo, couponRepo).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
