@@ -25,5 +25,9 @@ func (c FindByIdOrderUseCase) Execute(input dtos.InputFindByIdOrderDto) (*dtos.O
 		OrderItems:   order.OrderItems,
 		TotalInCents: order.TotalInCents,
 		Status:       order.Status,
+		Address:      *order.Address,
+		User:         *order.User,
+		CreatedAt:    order.CreatedAt,
+		UpdatedAt:    order.UpdatedAt,
 	}, nil
 }

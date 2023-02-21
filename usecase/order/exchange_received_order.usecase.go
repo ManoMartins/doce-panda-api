@@ -6,16 +6,16 @@ import (
 	"doce-panda/usecase/order/dtos"
 )
 
-type AcceptRequestExchangeOrderUseCase struct {
+type ExchangeReceivedOrderUseCase struct {
 	orderRepository  repository.OrderRepositoryInterface
 	couponRepository couponRepository.CouponRepositoryInterface
 }
 
-func NewAcceptRequestExchangeOrderUseCase(orderRepository repository.OrderRepositoryInterface, couponRepository couponRepository.CouponRepositoryInterface) *AcceptRequestExchangeOrderUseCase {
-	return &AcceptRequestExchangeOrderUseCase{orderRepository: orderRepository, couponRepository: couponRepository}
+func NewExchangeReceivedOrderUseCase(orderRepository repository.OrderRepositoryInterface, couponRepository couponRepository.CouponRepositoryInterface) *ExchangeReceivedOrderUseCase {
+	return &ExchangeReceivedOrderUseCase{orderRepository: orderRepository, couponRepository: couponRepository}
 }
 
-func (c AcceptRequestExchangeOrderUseCase) Execute(input dtos.InputAcceptRequestExchangeOrderDto) error {
+func (c ExchangeReceivedOrderUseCase) Execute(input dtos.InputExchangeReceivedOrderDto) error {
 	order, err := c.orderRepository.FindById(input.ID)
 
 	if err != nil {
@@ -28,7 +28,7 @@ func (c AcceptRequestExchangeOrderUseCase) Execute(input dtos.InputAcceptRequest
 		return err
 	}
 
-	err = order.AcceptExchangeRequest()
+	err = order.ExchangeReceived()
 
 	if err != nil {
 		return err

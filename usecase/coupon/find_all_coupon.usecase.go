@@ -27,6 +27,7 @@ func (c FindAllCouponUseCase) Execute() (*[]dtos.OutputFindAllCouponDto, error) 
 			Status:      coupon.Status,
 			VoucherCode: coupon.VoucherCode,
 			UserID:      coupon.UserID,
+			Amount:      coupon.Amount,
 			CreatedAt:   coupon.CreatedAt,
 			UpdatedAt:   coupon.UpdatedAt,
 		})

@@ -21,7 +21,7 @@ type Product struct {
 	Status       StatusEnum `json:"status" validate:"required"`
 	Description  string     `json:"description" validate:"required"`
 	Flavor       string     `json:"flavor" validate:"required"`
-	Quantity     int        `json:"quantity" validate:"required,min=0"`
+	Quantity     int        `json:"quantity" validate:"min=0"`
 	ImageUrl     string     `json:"imageUrl"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`

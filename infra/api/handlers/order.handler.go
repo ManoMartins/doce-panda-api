@@ -38,6 +38,7 @@ func FindByIdOrder() fiber.Handler {
 
 	}
 }
+
 func FindAllOrder() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		db := gorm.NewDb()
@@ -192,7 +193,7 @@ func RequestExchangeOrder() fiber.Handler {
 func AcceptRequestExchangeOrder() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id := ctx.Params("id")
-		body := new(dtos.InputAcceptRequestExchangeOrderDto)
+		body := new(dtos.InputAcceptExchangeRequestOrderDto)
 		err := ctx.BodyParser(body)
 
 		if err != nil {
@@ -203,7 +204,47 @@ func AcceptRequestExchangeOrder() fiber.Handler {
 			})
 		}
 
-		input := dtos.InputAcceptRequestExchangeOrderDto{
+		input := dtos.InputAcceptExchangeRequestOrderDto{
+			ID:          id,
+			VoucherCode: body.VoucherCode,
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		orderRepo := repository.NewOrderRepository(db)
+
+		err = order.NewAcceptExchangeRequestOrderUseCase(orderRepo).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+		})
+	}
+}
+
+func ExchangeReceivedOrder() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id := ctx.Params("id")
+		body := new(dtos.InputExchangeReceivedOrderDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		input := dtos.InputExchangeReceivedOrderDto{
 			ID:          id,
 			VoucherCode: body.VoucherCode,
 		}
@@ -214,7 +255,7 @@ func AcceptRequestExchangeOrder() fiber.Handler {
 		orderRepo := repository.NewOrderRepository(db)
 		couponRepo := couponRepository.NewCouponRepository(db)
 
-		err = order.NewAcceptRequestExchangeOrderUseCase(orderRepo, couponRepo).Execute(input)
+		err = order.NewExchangeReceivedOrderUseCase(orderRepo, couponRepo).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -267,6 +308,36 @@ func DenyRequestExchangeOrder() fiber.Handler {
 
 		return ctx.JSON(fiber.Map{
 			"success": true,
+		})
+	}
+}
+
+func FindAllOrderByUserId() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		userId := ctx.Locals("userId").(string)
+
+		input := dtos.InputFindAllOrderByUserIdDto{
+			UserID: userId,
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		orderRepo := repository.NewOrderRepository(db)
+
+		output, err := order.NewFindAllOrderByUserIdUseCase(orderRepo).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+			"data":    output,
 		})
 	}
 }

@@ -27,6 +27,8 @@ func (c FindAllOrderUseCase) Execute() (*[]dtos.OutputFindAllOrderDto, error) {
 			OrderItems:   order.OrderItems,
 			TotalInCents: order.TotalInCents,
 			Status:       order.Status,
+			CreatedAt:    order.CreatedAt,
+			UpdatedAt:    order.UpdatedAt,
 		})
 	}
 

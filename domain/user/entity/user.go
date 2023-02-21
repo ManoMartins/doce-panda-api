@@ -12,13 +12,13 @@ type User struct {
 	Name           string    `json:"name" validate:"required"`
 	Gender         string    `json:"gender" validate:"required,oneof='male' 'female'"`
 	Password       string    `json:"password"`
-	PhoneNumber    string    `json:"phone_number" validate:"required"`
-	DocumentNumber string    `json:"document_number" validate:"required"`
-	RewardPoints   int       `json:"reward_points" validate:"numeric"`
+	PhoneNumber    string    `json:"phoneNumber" validate:"required"`
+	DocumentNumber string    `json:"documentNumber" validate:"required"`
+	RewardPoints   int       `json:"rewardPoints" validate:"numeric"`
 	Email          string    `json:"email" validate:"required,email"`
 	Addresses      []Address `json:"addresses"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 type UserUpdateProps struct {

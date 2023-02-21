@@ -338,3 +338,33 @@ func DeleteAddress() fiber.Handler {
 		return ctx.SendStatus(fiber.StatusNoContent)
 	}
 }
+
+func FindByIdAddress() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		addressId := ctx.Params("addressId")
+
+		input := dtos.InputFindByIdAddressDto{
+			ID: addressId,
+		}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		addressRepository := repository.NewAddressRepository(db)
+
+		output, err := user.NewFindByIdAddressUseCase(addressRepository).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+			"data":    output,
+		})
+	}
+}

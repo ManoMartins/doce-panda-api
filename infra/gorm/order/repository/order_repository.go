@@ -21,7 +21,7 @@ func NewOrderRepository(db *gorm.DB) *OrderRepositoryDb {
 func (o OrderRepositoryDb) FindById(ID string) (*entity.Order, error) {
 	var orderModel model.Order
 
-	o.Db.Preload("OrderItems").Preload("OrderItems.Product").First(&orderModel, "id = ?", ID)
+	o.Db.Preload("OrderItems").Preload("Address").Preload("User").Preload("OrderItems.Product").First(&orderModel, "id = ?", ID)
 
 	if orderModel.ID == "" {
 		return nil, fmt.Errorf("Pedido não foi encontrado")
@@ -67,6 +67,8 @@ func (o OrderRepositoryDb) FindById(ID string) (*entity.Order, error) {
 		OrderItems:   orderItems,
 		TotalInCents: orderModel.TotalInCents,
 		Status:       orderModel.Status,
+		User:         orderModel.User,
+		Address:      orderModel.Address,
 	})
 }
 
@@ -137,6 +139,75 @@ func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 	return &orders, nil
 }
 
+func (o OrderRepositoryDb) FindAllByUserId(UserID string) (*[]entity.Order, error) {
+	var ordersModel []model.Order
+
+	err := o.Db.Preload("OrderItems").Preload("OrderItems.Product").Find(&ordersModel, "user_id = ?", UserID).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var orders []entity.Order
+
+	for _, orderModel := range ordersModel {
+		var orderItems []entity.OrderItem
+
+		for _, orderItemModel := range orderModel.OrderItems {
+			product, err := productEntity.NewProduct(productEntity.Product{
+				ID:           orderItemModel.Product.ID,
+				Name:         orderItemModel.Product.Name,
+				PriceInCents: orderItemModel.Product.PriceInCents,
+				Status:       orderItemModel.Product.Status,
+				Description:  orderItemModel.Product.Description,
+				Flavor:       orderItemModel.Product.Flavor,
+				Quantity:     orderItemModel.Product.Quantity,
+				ImageUrl:     orderItemModel.Product.ImageUrl,
+				CreatedAt:    orderItemModel.Product.CreatedAt,
+				UpdatedAt:    orderItemModel.Product.UpdatedAt,
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			orderItem, err := entity.NewOrderItem(entity.OrderItem{
+				ID:           orderItemModel.ID,
+				ProductID:    orderItemModel.ProductID,
+				OrderID:      orderItemModel.OrderID,
+				Quantity:     orderItemModel.Quantity,
+				TotalInCents: orderItemModel.TotalInCents,
+				Product:      *product,
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			orderItems = append(orderItems, *orderItem)
+		}
+
+		order, err := entity.NewOrder(entity.Order{
+			ID:           orderModel.ID,
+			OrderItems:   orderItems,
+			TotalInCents: orderModel.TotalInCents,
+			Status:       orderModel.Status,
+			UserID:       orderModel.UserID,
+			AddressID:    orderModel.AddressID,
+			CreatedAt:    orderModel.CreatedAt,
+			UpdatedAt:    orderModel.UpdatedAt,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, *order)
+	}
+
+	return &orders, nil
+}
+
 func (o OrderRepositoryDb) Create(order entity.Order) error {
 	var paymentsModel []model.OrderPayment
 
@@ -157,6 +228,8 @@ func (o OrderRepositoryDb) Create(order entity.Order) error {
 		CouponID:     order.CouponID,
 		AddressID:    order.AddressID,
 		UserID:       order.UserID,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	err := o.Db.Omit("Payments").Create(&orderModel).Error

@@ -3,6 +3,7 @@ package entity
 import (
 	couponEntity "doce-panda/domain/coupon/entity"
 	"doce-panda/domain/payment/entity"
+	userEntity "doce-panda/domain/user/entity"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -19,6 +20,7 @@ const (
 	DELIVERED               StatusEnum = "DELIVERED"
 	EXCHANGE_REQUEST        StatusEnum = "EXCHANGE_REQUEST"
 	ACCEPT_EXCHANGE_REQUEST StatusEnum = "ACCEPT_EXCHANGE_REQUEST"
+	EXCHANGE_RECEIVED       StatusEnum = "EXCHANGE_RECEIVED"
 	DENY_EXCHANGE_REQUEST   StatusEnum = "DENY_EXCHANGE_REQUEST"
 )
 
@@ -27,12 +29,14 @@ type Order struct {
 	OrderItems      []OrderItem         `json:"orderItems"`
 	SubTotalInCents int                 `json:"subTotalInCents"`
 	TotalInCents    int                 `json:"totalInCents"`
-	Status          StatusEnum          `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED' 'EXCHANGE_REQUEST'"`
+	Status          StatusEnum          `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED' 'EXCHANGE_REQUEST' 'EXCHANGE_RECEIVED' 'ACCEPT_EXCHANGE_REQUEST' 'DENY_EXCHANGE_REQUEST'"`
 	Payments        []entity.CreditCard `json:"payments"`
 	DeliveredFee    int                 `json:"deliveredFee"`
 	CouponID        *string             `json:"couponId"`
 	AddressID       string              `json:"addressId"`
+	Address         *userEntity.Address `json:"address"`
 	UserID          string              `json:"userId"`
+	User            *userEntity.User    `json:"user"`
 	CreatedAt       time.Time           `json:"createdAt"`
 	UpdatedAt       time.Time           `json:"updatedAt"`
 }
@@ -42,6 +46,7 @@ type OrderInterface interface {
 	AddOrderItems(orderItems []OrderItem)
 	UpdateStatus(status StatusEnum) error
 	RequestExchange() error
+	ExchangeReceived() error
 	ApplyCoupon(coupon couponEntity.Coupon) (int, error)
 	AcceptExchangeRequest() error
 	DenyExchangeRequest() error
@@ -73,6 +78,24 @@ func NewOrder(order Order) (*Order, error) {
 
 	if order.CouponID == nil {
 		o.TotalInCents = o.SubTotalInCents + o.DeliveredFee
+	}
+
+	if order.Address != nil {
+		o.Address = order.Address
+	}
+
+	if order.User != nil {
+		o.User = &userEntity.User{
+			ID:             order.User.ID,
+			Name:           order.User.Name,
+			Gender:         order.User.Gender,
+			PhoneNumber:    order.User.PhoneNumber,
+			DocumentNumber: order.User.DocumentNumber,
+			RewardPoints:   order.User.RewardPoints,
+			Email:          order.User.Email,
+			CreatedAt:      order.User.CreatedAt,
+			UpdatedAt:      order.User.UpdatedAt,
+		}
 	}
 
 	err := o.Validate()
@@ -158,6 +181,16 @@ func (o *Order) DenyExchangeRequest() error {
 	}
 
 	o.Status = DENY_EXCHANGE_REQUEST
+
+	return nil
+}
+
+func (o *Order) ExchangeReceived() error {
+	if o.Status != ACCEPT_EXCHANGE_REQUEST {
+		return fmt.Errorf("A troca do pedido precisa está aceito")
+	}
+
+	o.Status = EXCHANGE_RECEIVED
 
 	return nil
 }
