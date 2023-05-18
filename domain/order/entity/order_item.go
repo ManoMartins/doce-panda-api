@@ -30,6 +30,8 @@ func NewOrderItem(orderItem OrderItem) (*OrderItem, error) {
 		Quantity:     orderItem.Quantity,
 		TotalInCents: orderItem.TotalInCents,
 		Product:      orderItem.Product,
+		CreatedAt:    orderItem.CreatedAt,
+		UpdatedAt:    orderItem.UpdatedAt,
 	}
 
 	if orderItem.ID == "" {

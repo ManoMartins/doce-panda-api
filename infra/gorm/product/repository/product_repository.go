@@ -33,6 +33,7 @@ func (r ProductRepositoryDb) FindById(ID string) (*entity.Product, error) {
 		Flavor:       productModel.Flavor,
 		Quantity:     productModel.Quantity,
 		ImageUrl:     productModel.ImageUrl,
+		CategoryID:   productModel.CategoryID,
 		CreatedAt:    productModel.CreatedAt,
 		UpdatedAt:    productModel.UpdatedAt,
 	})
@@ -82,6 +83,7 @@ func (r ProductRepositoryDb) Create(product entity.Product) error {
 		Description:  product.Description,
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
+		CategoryID:   product.CategoryID,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
 	}
@@ -105,6 +107,7 @@ func (r ProductRepositoryDb) Update(product entity.Product) error {
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
 		ImageUrl:     product.ImageUrl,
+		CategoryID:   product.CategoryID,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
 	}

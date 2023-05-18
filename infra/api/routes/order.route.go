@@ -7,6 +7,7 @@ import (
 )
 
 func OrderRouter(app fiber.Router) {
+	app.Get("/orders/report", middlewares.EnsureAuthenticated(), handlers.ReportOrder())
 	app.Get("/orders/me", middlewares.EnsureAuthenticated(), handlers.FindAllOrderByUserId())
 	app.Get("/orders/:id", middlewares.EnsureAuthenticated(), handlers.FindByIdOrder())
 	app.Get("/orders", middlewares.EnsureAuthenticated(), handlers.FindAllOrder())

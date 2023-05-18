@@ -17,12 +17,20 @@ type Order struct {
 	OrderPayments []OrderPayment            `json:"orderPayments"`
 	Coupon        couponEntity.Coupon       `json:"coupon" gorm:"ForeignKey:CouponID"`
 	CouponID      *string                   `json:"couponId" gorm:"column:coupon_id;type:uuid;nullable"`
+	Coupons       []OrderCoupon             `json:"coupons" gorm:"many2many:order_coupons"`
 	Address       *userEntity.Address       `json:"address" gorm:"ForeignKey:AddressID"`
 	AddressID     string                    `json:"addressId" gorm:"column:address_id;type:uuid;notnull"`
 	User          *userEntity.User          `json:"user" gorm:"ForeignKey:UserID"`
 	UserID        string                    `json:"userId" gorm:"column:user_id;type:uuid;notnull"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+}
+
+type OrderCoupon struct {
+	OrderID   string
+	CouponID  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type OrderPayment struct {

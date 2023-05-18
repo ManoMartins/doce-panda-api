@@ -2,9 +2,11 @@ package repository
 
 import (
 	"doce-panda/domain/order/entity"
+	"doce-panda/domain/order/repository"
 	productEntity "doce-panda/domain/product/entity"
 	"doce-panda/infra/gorm/order/model"
 	productModel "doce-panda/infra/gorm/product/model"
+	"doce-panda/utils"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"time"
@@ -75,7 +77,7 @@ func (o OrderRepositoryDb) FindById(ID string) (*entity.Order, error) {
 func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 	var ordersModel []model.Order
 
-	err := o.Db.Preload("OrderItems").Preload("OrderItems.Product").Find(&ordersModel).Error
+	err := o.Db.Preload("OrderItems").Preload("OrderItems.Product").Order("created_at DESC").Find(&ordersModel).Error
 
 	if err != nil {
 		return nil, err
@@ -111,6 +113,8 @@ func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 				Quantity:     orderItemModel.Quantity,
 				TotalInCents: orderItemModel.TotalInCents,
 				Product:      *product,
+				CreatedAt:    orderItemModel.CreatedAt,
+				UpdatedAt:    orderItemModel.UpdatedAt,
 			})
 
 			if err != nil {
@@ -127,6 +131,8 @@ func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 			Status:       orderModel.Status,
 			UserID:       orderModel.UserID,
 			AddressID:    orderModel.AddressID,
+			CreatedAt:    orderModel.CreatedAt,
+			UpdatedAt:    orderModel.UpdatedAt,
 		})
 
 		if err != nil {
@@ -142,7 +148,7 @@ func (o OrderRepositoryDb) FindAll() (*[]entity.Order, error) {
 func (o OrderRepositoryDb) FindAllByUserId(UserID string) (*[]entity.Order, error) {
 	var ordersModel []model.Order
 
-	err := o.Db.Preload("OrderItems").Preload("OrderItems.Product").Find(&ordersModel, "user_id = ?", UserID).Error
+	err := o.Db.Preload("OrderItems").Preload("OrderItems.Product").Order("created_at DESC").Find(&ordersModel, "user_id = ?", UserID).Error
 
 	if err != nil {
 		return nil, err
@@ -221,6 +227,18 @@ func (o OrderRepositoryDb) Create(order entity.Order) error {
 		})
 	}
 
+	var couponsModel []model.OrderCoupon
+	if len(order.Coupons) > 0 {
+		for _, c := range order.Coupons {
+			couponsModel = append(couponsModel, model.OrderCoupon{
+				CouponID:  c.ID,
+				OrderID:   order.ID,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			})
+		}
+	}
+
 	orderModel := model.Order{
 		ID:           order.ID,
 		TotalInCents: order.TotalInCents,
@@ -234,10 +252,13 @@ func (o OrderRepositoryDb) Create(order entity.Order) error {
 
 	err := o.Db.Omit("Payments").Create(&orderModel).Error
 	o.Db.Model(&orderModel).Association("Payments").Append(paymentsModel)
+	o.Db.Model(&orderModel).Association("Coupons").Append(couponsModel)
 
 	if err != nil {
 		return err
 	}
+
+	randate := utils.Randate()
 
 	var orderItemsModel []model.OrderItem
 	for _, orderItem := range order.OrderItems {
@@ -247,6 +268,8 @@ func (o OrderRepositoryDb) Create(order entity.Order) error {
 			OrderID:      orderModel.ID,
 			Quantity:     orderItem.Quantity,
 			TotalInCents: orderItem.TotalInCents,
+			CreatedAt:    randate,
+			UpdatedAt:    randate,
 		}
 
 		orderItemsModel = append(orderItemsModel, orderItemModel)
@@ -314,4 +337,66 @@ func (o OrderRepositoryDb) UpdateStatus(order entity.Order) error {
 	}
 
 	return nil
+}
+
+func (o OrderRepositoryDb) Report(input repository.InputReport) (*[]entity.OrderItem, error) {
+	var orderItemsModel []model.OrderItem
+
+	err := o.Db.Preload("Product").Preload("Product.Category").Where("created_at BETWEEN ? AND ?", input.StartDate, input.EndDate).Find(&orderItemsModel).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var orderItems []entity.OrderItem
+	for _, orderItemModel := range orderItemsModel {
+
+		category, err := productEntity.NewCategory(productEntity.Category{
+			ID:          orderItemModel.Product.Category.ID,
+			Description: orderItemModel.Product.Category.Description,
+			CreatedAt:   orderItemModel.Product.Category.CreatedAt,
+			UpdatedAt:   orderItemModel.Product.Category.UpdatedAt,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		product, err := productEntity.NewProduct(productEntity.Product{
+			ID:           orderItemModel.Product.ID,
+			Name:         orderItemModel.Product.Name,
+			PriceInCents: orderItemModel.Product.PriceInCents,
+			Status:       orderItemModel.Product.Status,
+			Description:  orderItemModel.Product.Description,
+			Flavor:       orderItemModel.Product.Flavor,
+			Quantity:     orderItemModel.Product.Quantity,
+			Category:     *category,
+			ImageUrl:     orderItemModel.Product.ImageUrl,
+			CreatedAt:    orderItemModel.Product.CreatedAt,
+			UpdatedAt:    orderItemModel.Product.UpdatedAt,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		orderItem, err := entity.NewOrderItem(entity.OrderItem{
+			ID:           orderItemModel.ID,
+			ProductID:    orderItemModel.ProductID,
+			OrderID:      orderItemModel.OrderID,
+			Quantity:     orderItemModel.Quantity,
+			TotalInCents: orderItemModel.TotalInCents,
+			Product:      *product,
+			CreatedAt:    orderItemModel.CreatedAt,
+			UpdatedAt:    orderItemModel.UpdatedAt,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		orderItems = append(orderItems, *orderItem)
+	}
+
+	return &orderItems, nil
 }

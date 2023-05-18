@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"doce-panda/businessController/coupon"
+	"doce-panda/businessController/coupon/dtos"
 	"doce-panda/infra/db/gorm"
 	"doce-panda/infra/gorm/coupon/repository"
-	"doce-panda/usecase/coupon"
-	"doce-panda/usecase/coupon/dtos"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -15,7 +15,7 @@ func FindAllCoupon() fiber.Handler {
 
 		couponRepo := repository.NewCouponRepository(db)
 
-		output, err := coupon.NewFindAllCouponUseCase(couponRepo).Execute()
+		output, err := coupon.NewFindAllCouponBusinessController(couponRepo).Execute()
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -43,7 +43,7 @@ func FindByIdCoupon() fiber.Handler {
 
 		couponRepo := repository.NewCouponRepository(db)
 
-		output, err := coupon.NewFindByIdCouponUseCase(couponRepo).Execute(input)
+		output, err := coupon.NewFindByIdCouponBusinessController(couponRepo).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -87,7 +87,7 @@ func UpdateStatusCoupon() fiber.Handler {
 
 		couponRepo := repository.NewCouponRepository(db)
 
-		err = coupon.NewUpdateStatusCouponUseCase(couponRepo).Execute(input)
+		err = coupon.NewUpdateStatusCouponBusinessController(couponRepo).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -99,6 +99,33 @@ func UpdateStatusCoupon() fiber.Handler {
 
 		return ctx.JSON(fiber.Map{
 			"success": true,
+		})
+	}
+}
+
+func FindByVoucherCodeCoupon() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		voucherCode := ctx.Params("voucherCode")
+
+		input := dtos.InputFindByVoucherCodeCouponDto{VoucherCode: voucherCode}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		couponRepo := repository.NewCouponRepository(db)
+		output, err := coupon.NewFindByVoucherCodeCouponBusinessController(couponRepo).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+			"data":    output,
 		})
 	}
 }

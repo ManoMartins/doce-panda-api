@@ -13,6 +13,8 @@ type Product struct {
 	Description  string            `json:"description" gorm:"type:varchar(255)"`
 	Flavor       string            `json:"flavor" gorm:"type:varchar(255)"`
 	Quantity     int               `json:"quantity" gorm:"type:integer"`
+	Category     entity.Category   `json:"category" gorm:"ForeignKey:CategoryID"`
+	CategoryID   string            `json:"categoryId" gorm:"column:category_id;type:uuid;nullable"`
 	ImageUrl     string            `json:"imageUrl"`
 	CreatedAt    time.Time         `json:"createdAt"`
 	UpdatedAt    time.Time         `json:"updatedAt"`

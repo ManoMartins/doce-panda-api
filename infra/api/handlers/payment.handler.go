@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"doce-panda/businessController/payment"
+	"doce-panda/businessController/payment/dtos"
 	"doce-panda/infra/db/gorm"
 	"doce-panda/infra/gorm/payment/repository"
-	"doce-panda/usecase/payment"
-	"doce-panda/usecase/payment/dtos"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -19,7 +19,7 @@ func FindByIdCreditCard() fiber.Handler {
 
 		creditCardRepository := repository.NewCreditCardRepository(db)
 
-		output, err := payment.NewFindByIdCreditCardUseCase(creditCardRepository).Execute(input)
+		output, err := payment.NewFindByIdCreditCardBusinessController(creditCardRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -43,7 +43,7 @@ func FindAllCreditCard() fiber.Handler {
 
 		creditCardRepository := repository.NewCreditCardRepository(db)
 
-		output, err := payment.NewFindAllCreditCardUseCase(creditCardRepository).Execute()
+		output, err := payment.NewFindAllCreditCardBusinessController(creditCardRepository).Execute()
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -83,7 +83,7 @@ func CreateCreditCard() fiber.Handler {
 
 		creditCardRepository := repository.NewCreditCardRepository(db)
 
-		output, err := payment.NewCreateCreditCardUseCase(creditCardRepository).Execute(input)
+		output, err := payment.NewCreateCreditCardBusinessController(creditCardRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -113,7 +113,7 @@ func DeleteCreditCard() fiber.Handler {
 
 		creditCardRepository := repository.NewCreditCardRepository(db)
 
-		err := payment.NewDeleteCreditCardUseCase(creditCardRepository).Execute(input)
+		err := payment.NewDeleteCreditCardBusinessController(creditCardRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{

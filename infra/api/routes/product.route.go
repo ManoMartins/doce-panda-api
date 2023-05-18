@@ -14,4 +14,6 @@ func ProductRouter(app fiber.Router) {
 	app.Patch("/products/:id/upload", handlers.UploadProduct())
 	app.Patch("/products/:id/enable", handlers.EnableProduct())
 	app.Patch("/products/:id/disable", handlers.DisableProduct())
+
+	app.Post("/categories", handlers.CreateCategory())
 }

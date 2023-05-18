@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"doce-panda/businessController/user"
+	"doce-panda/businessController/user/dtos"
 	"doce-panda/infra/db/gorm"
 	"doce-panda/infra/gorm/user/repository"
-	"doce-panda/usecase/user"
-	"doce-panda/usecase/user/dtos"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -25,7 +25,7 @@ func LoginUser() fiber.Handler {
 		defer db.Close()
 
 		userRepo := repository.NewUserRepository(db)
-		output, err := user.NewAuthenticateUserUseCase(userRepo).Execute(*body)
+		output, err := user.NewAuthenticateUserBusinessController(userRepo).Execute(*body)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -53,7 +53,7 @@ func FindUser() fiber.Handler {
 
 		userRepository := repository.NewUserRepository(db)
 
-		output, err := user.NewFindUserUseCase(userRepository).Execute(input)
+		output, err := user.NewFindUserBusinessController(userRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -78,7 +78,7 @@ func FindAllUser() fiber.Handler {
 
 		userRepository := repository.NewUserRepository(db)
 
-		output, err := user.NewFindAllUserUseCase(userRepository).Execute()
+		output, err := user.NewFindAllUserBusinessController(userRepository).Execute()
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -112,7 +112,7 @@ func CreateUser() fiber.Handler {
 		defer db.Close()
 
 		userRepository := repository.NewUserRepository(db)
-		output, err := user.NewCreateUserUseCase(userRepository).Execute(*body)
+		output, err := user.NewCreateUserBusinessController(userRepository).Execute(*body)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -155,7 +155,7 @@ func UpdateUser() fiber.Handler {
 			DocumentNumber: body.DocumentNumber,
 		}
 
-		output, err := user.NewUpdateUserUseCase(userRepository).Execute(input)
+		output, err := user.NewUpdateUserBusinessController(userRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -183,7 +183,7 @@ func DeleteUser() fiber.Handler {
 
 		userRepository := repository.NewUserRepository(db)
 
-		err := user.NewDestroyUserUseCase(userRepository).Execute(input)
+		err := user.NewDestroyUserBusinessController(userRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -217,7 +217,7 @@ func CreateAddress() fiber.Handler {
 		defer db.Close()
 
 		addressRepository := repository.NewAddressRepository(db)
-		output, err := user.NewCreateAddressUseCase(addressRepository).Execute(*body)
+		output, err := user.NewCreateAddressBusinessController(addressRepository).Execute(*body)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -244,7 +244,7 @@ func FindAllAddressByUserId() fiber.Handler {
 		input := dtos.InputFindAllAddressDto{UserID: id}
 
 		addressRepository := repository.NewAddressRepository(db)
-		output, err := user.NewFindAllAddressUseCase(addressRepository).Execute(input)
+		output, err := user.NewFindAllAddressBusinessController(addressRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -293,7 +293,7 @@ func UpdateAddress() fiber.Handler {
 			UserID:       id,
 		}
 
-		output, err := user.NewUpdateAddressUseCase(addressRepository).Execute(input)
+		output, err := user.NewUpdateAddressBusinessController(addressRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -325,7 +325,7 @@ func DeleteAddress() fiber.Handler {
 
 		addressRepository := repository.NewAddressRepository(db)
 
-		err := user.NewDestroyAddressUseCase(addressRepository).Execute(input)
+		err := user.NewDestroyAddressBusinessController(addressRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -352,7 +352,7 @@ func FindByIdAddress() fiber.Handler {
 
 		addressRepository := repository.NewAddressRepository(db)
 
-		output, err := user.NewFindByIdAddressUseCase(addressRepository).Execute(input)
+		output, err := user.NewFindByIdAddressBusinessController(addressRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{

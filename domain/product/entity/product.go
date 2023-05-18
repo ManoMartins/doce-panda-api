@@ -22,6 +22,8 @@ type Product struct {
 	Description  string     `json:"description" validate:"required"`
 	Flavor       string     `json:"flavor" validate:"required"`
 	Quantity     int        `json:"quantity" validate:"min=0"`
+	Category     Category   `json:"category"`
+	CategoryID   string     `json:"categoryId"`
 	ImageUrl     string     `json:"imageUrl"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
@@ -56,6 +58,8 @@ func NewProduct(product Product) (*Product, error) {
 		Flavor:       product.Flavor,
 		Quantity:     product.Quantity,
 		ImageUrl:     product.ImageUrl,
+		Category:     product.Category,
+		CategoryID:   product.CategoryID,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
 	}

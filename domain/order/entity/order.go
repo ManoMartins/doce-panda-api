@@ -25,20 +25,21 @@ const (
 )
 
 type Order struct {
-	ID              string              `json:"id" validate:"required"`
-	OrderItems      []OrderItem         `json:"orderItems"`
-	SubTotalInCents int                 `json:"subTotalInCents"`
-	TotalInCents    int                 `json:"totalInCents"`
-	Status          StatusEnum          `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED' 'EXCHANGE_REQUEST' 'EXCHANGE_RECEIVED' 'ACCEPT_EXCHANGE_REQUEST' 'DENY_EXCHANGE_REQUEST'"`
-	Payments        []entity.CreditCard `json:"payments"`
-	DeliveredFee    int                 `json:"deliveredFee"`
-	CouponID        *string             `json:"couponId"`
-	AddressID       string              `json:"addressId"`
-	Address         *userEntity.Address `json:"address"`
-	UserID          string              `json:"userId"`
-	User            *userEntity.User    `json:"user"`
-	CreatedAt       time.Time           `json:"createdAt"`
-	UpdatedAt       time.Time           `json:"updatedAt"`
+	ID              string                `json:"id" validate:"required"`
+	OrderItems      []OrderItem           `json:"orderItems"`
+	SubTotalInCents int                   `json:"subTotalInCents"`
+	TotalInCents    int                   `json:"totalInCents"`
+	Status          StatusEnum            `json:"status" validate:"required,oneof='WAITING_PAYMENT' 'PREPARING' 'IN_TRANSIT' 'DELIVERED' 'EXCHANGE_REQUEST' 'EXCHANGE_RECEIVED' 'ACCEPT_EXCHANGE_REQUEST' 'DENY_EXCHANGE_REQUEST'"`
+	Payments        []entity.CreditCard   `json:"payments"`
+	DeliveredFee    int                   `json:"deliveredFee"`
+	CouponID        *string               `json:"couponId"`
+	Coupons         []couponEntity.Coupon `json:"coupons"`
+	AddressID       string                `json:"addressId"`
+	Address         *userEntity.Address   `json:"address"`
+	UserID          string                `json:"userId"`
+	User            *userEntity.User      `json:"user"`
+	CreatedAt       time.Time             `json:"createdAt"`
+	UpdatedAt       time.Time             `json:"updatedAt"`
 }
 
 type OrderInterface interface {
@@ -48,6 +49,7 @@ type OrderInterface interface {
 	RequestExchange() error
 	ExchangeReceived() error
 	ApplyCoupon(coupon couponEntity.Coupon) (int, error)
+	ApplyCoupons(coupons []couponEntity.Coupon) (int, error)
 	AcceptExchangeRequest() error
 	DenyExchangeRequest() error
 }
@@ -62,6 +64,7 @@ func NewOrder(order Order) (*Order, error) {
 		Payments:        order.Payments,
 		DeliveredFee:    order.DeliveredFee,
 		CouponID:        order.CouponID,
+		Coupons:         order.Coupons,
 		AddressID:       order.AddressID,
 		UserID:          order.UserID,
 		CreatedAt:       order.CreatedAt,
@@ -76,7 +79,7 @@ func NewOrder(order Order) (*Order, error) {
 		o.Status = WAITING_PAYMENT
 	}
 
-	if order.CouponID == nil {
+	if order.CouponID == nil && order.TotalInCents == 0 {
 		o.TotalInCents = o.SubTotalInCents + o.DeliveredFee
 	}
 
@@ -147,6 +150,31 @@ func (o *Order) ApplyCoupon(coupon couponEntity.Coupon) (int, error) {
 	}
 
 	o.TotalInCents = o.SubTotalInCents + o.DeliveredFee - coupon.Amount
+
+	if o.TotalInCents < 0 {
+		moneyExchange := o.TotalInCents
+		o.TotalInCents = 0
+		return int(math.Abs(float64(moneyExchange))), nil
+	}
+
+	return 0, nil
+}
+
+func (o *Order) ApplyCoupons(coupons []couponEntity.Coupon) (int, error) {
+	couponAmount := 0
+	for _, coupon := range coupons {
+		if coupon.Status == couponEntity.USED {
+			return 0, fmt.Errorf("O cupom %s  já foi utilizado", coupon.VoucherCode)
+		}
+
+		if coupon.UserID != o.UserID {
+			return 0, fmt.Errorf("O cupom %s não pertence ao usuário", coupon.VoucherCode)
+		}
+
+		couponAmount += coupon.Amount
+	}
+
+	o.TotalInCents = o.SubTotalInCents + o.DeliveredFee - couponAmount
 
 	if o.TotalInCents < 0 {
 		moneyExchange := o.TotalInCents

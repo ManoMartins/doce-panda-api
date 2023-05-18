@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"doce-panda/businessController/product"
+	"doce-panda/businessController/product/dtos"
 	"doce-panda/infra/db/gorm"
 	"doce-panda/infra/gorm/product/repository"
-	"doce-panda/usecase/product"
-	"doce-panda/usecase/product/dtos"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -15,7 +15,7 @@ func FindAllProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		output, err := product.NewFindAllProductUseCase(productRepository).Execute()
+		output, err := product.NewFindAllProductBusinessController(productRepository).Execute()
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err.Error())
@@ -27,6 +27,7 @@ func FindAllProduct() fiber.Handler {
 		})
 	}
 }
+
 func FindProduct() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id := ctx.Params("id")
@@ -38,7 +39,7 @@ func FindProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		output, err := product.NewFindProductUseCase(productRepository).Execute(input)
+		output, err := product.NewFindProductBusinessController(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err.Error())
@@ -66,20 +67,20 @@ func CreateProduct() fiber.Handler {
 			Description:  body.Description,
 			Flavor:       body.Flavor,
 			Quantity:     body.Quantity,
+			CategoryID:   body.CategoryID,
 		}
 
 		db := gorm.NewDb()
 		defer db.Close()
 
 		productRepository := repository.NewProductRepository(db)
-		output, err := product.NewCreateProductUseCase(productRepository).Execute(input)
+		output, err := product.NewCreateProductBusinessController(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"success": false,
-				"data": fiber.Map{
-					"message": err.Error(),
-				},
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
 			})
 		}
 
@@ -104,7 +105,7 @@ func UpdateProduct() fiber.Handler {
 		defer db.Close()
 
 		productRepository := repository.NewProductRepository(db)
-		findProduct, err := product.NewFindProductUseCase(productRepository).Execute(dtos.InputFindProductDto{ID: id})
+		findProduct, err := product.NewFindProductBusinessController(productRepository).Execute(dtos.InputFindProductDto{ID: id})
 
 		input := dtos.InputUpdateProductDto{
 			ID:           id,
@@ -116,7 +117,7 @@ func UpdateProduct() fiber.Handler {
 			Status:       dtos.StatusEnum(findProduct.Status),
 		}
 
-		output, err := product.NewUpdateProductUseCase(productRepository).Execute(input)
+		output, err := product.NewUpdateProductBusinessController(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -145,7 +146,7 @@ func DestroyProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		err := product.NewDeleteProductUseCase(productRepository).Execute(input)
+		err := product.NewDeleteProductBusinessController(productRepository).Execute(input)
 
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(err)
@@ -171,7 +172,7 @@ func UploadProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		productEntity, err := product.NewUploadProductUseCase(productRepository).Execute(dtos.InputUploadProductDto{
+		productEntity, err := product.NewUploadProductBusinessController(productRepository).Execute(dtos.InputUploadProductDto{
 			ID:   id,
 			File: file,
 		})
@@ -196,7 +197,7 @@ func DisableProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		err := product.NewDisableProductUseCase(productRepository).Execute(dtos.InputDisableProductDto{
+		err := product.NewDisableProductBusinessController(productRepository).Execute(dtos.InputDisableProductDto{
 			ID: id,
 		})
 
@@ -219,7 +220,7 @@ func EnableProduct() fiber.Handler {
 
 		productRepository := repository.NewProductRepository(db)
 
-		err := product.NewEnableProductUseCase(productRepository).Execute(dtos.InputEnableProductDto{
+		err := product.NewEnableProductBusinessController(productRepository).Execute(dtos.InputEnableProductDto{
 			ID: id,
 		})
 
@@ -233,6 +234,43 @@ func EnableProduct() fiber.Handler {
 
 		return ctx.Status(fiber.StatusNoContent).JSON(fiber.Map{
 			"success": true,
+		})
+	}
+}
+
+func CreateCategory() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		body := new(dtos.InputCreateCategoryDto)
+		err := ctx.BodyParser(body)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		input := dtos.InputCreateCategoryDto{Description: body.Description}
+
+		db := gorm.NewDb()
+		defer db.Close()
+
+		categoryRepository := repository.NewCategoryRepository(db)
+
+		category, err := product.NewCreateCategoryBusinessController(categoryRepository).Execute(input)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"success":      false,
+				"error":        err,
+				"errorMessage": err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"success": true,
+			"data":    category,
 		})
 	}
 }

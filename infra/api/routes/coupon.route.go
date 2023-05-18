@@ -8,6 +8,7 @@ import (
 
 func CouponRouter(app fiber.Router) {
 	app.Get("/coupons", middlewares.EnsureAuthenticated(), handlers.FindAllCoupon())
+	app.Get("/coupons/voucher-code/:voucherCode", middlewares.EnsureAuthenticated(), handlers.FindByVoucherCodeCoupon())
 	app.Get("/coupons/:id", middlewares.EnsureAuthenticated(), handlers.FindByIdCoupon())
 	app.Patch("/coupons/:id", middlewares.EnsureAuthenticated(), handlers.UpdateStatusCoupon())
 }
